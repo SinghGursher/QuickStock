@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand Colors -->
+    <color name="primaryGreen">#2E7D32</color>
+    <color name="primaryGreenDark">#1B5E20</color>
+    <color name="primaryGreenLight">#81C784</color>
+
+    <!-- Accent -->
+    <color name="accentOrange">#FF9800</color>
+
+    <!-- Background -->
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Text -->
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#757575</color>
+
+    <!-- Status -->
+    <color name="error">#D32F2F</color>
+    <color name="success">#43A047</color>
+
 </resources>

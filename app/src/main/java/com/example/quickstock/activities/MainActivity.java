@@ -1,0 +1,77 @@
+package com.example.quickstock.activities;
+
+import android.os.Bundle;
+
+import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+
+import com.example.quickstock.R;
+import com.example.quickstock.fragments.DashboardFragment;
+import com.example.quickstock.fragments.InventoryFragment;
+import com.example.quickstock.fragments.SalesFragment;
+import com.example.quickstock.fragments.SettingsFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class MainActivity extends AppCompatActivity {
+
+    private BottomNavigationView bottomNavigation;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        bottomNavigation = findViewById(R.id.bottomNavigation);
+
+        // Load Dashboard first
+        if (savedInstanceState == null) {
+            loadFragment(new DashboardFragment());
+        }
+
+        bottomNavigation.setOnItemSelectedListener(item -> {
+
+            Fragment selectedFragment = null;
+
+            int id = item.getItemId();
+
+            if (id == R.id.nav_dashboard) {
+                selectedFragment = new DashboardFragment();
+
+            } else if (id == R.id.nav_inventory) {
+                selectedFragment = new InventoryFragment();
+
+            } else if (id == R.id.nav_sales) {
+                selectedFragment = new SalesFragment();
+
+            } else if (id == R.id.nav_settings) {
+                selectedFragment = new SettingsFragment();
+            }
+
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+                return true;
+            }
+
+            return false;
+        });
+    }
+
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commit();
+    }
+}
