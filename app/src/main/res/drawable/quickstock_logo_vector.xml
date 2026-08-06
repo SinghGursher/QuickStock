@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Q outer ring -->
+    <path
+        android:fillColor="@color/primaryGreen"
+        android:fillType="evenOdd"
+        android:pathData="
+            M256,28
+            A228,228 0,1 1,255.9,28
+            Z
+
+            M256,105
+            A151,151 0,1 0,256.1,105
+            Z" />
+
+    <!-- Q tail -->
+    <path
+        android:fillColor="@color/primaryGreenDark"
+        android:pathData="
+            M320,315
+            L455,420
+            L398,474
+            L279,349
+            Z" />
+
+    <!-- Left top panel of box -->
+    <path
+        android:fillColor="@color/primaryGreen"
+        android:pathData="
+            M130,224
+            L220,172
+            L303,220
+            L213,273
+            Z" />
+
+    <!-- Right top panel of box -->
+    <path
+        android:fillColor="@color/primaryGreen"
+        android:pathData="
+            M231,166
+            L294,130
+            L383,181
+            L319,218
+            Z" />
+
+    <!-- Front panel of box -->
+    <path
+        android:fillColor="@color/primaryGreenDark"
+        android:pathData="
+            M220,283
+            L319,226
+            L319,343
+            L220,400
+            Z" />
+
+</vector>

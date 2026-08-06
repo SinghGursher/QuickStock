@@ -1,5 +1,7 @@
 package com.example.quickstock.repositories;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.example.quickstock.firebase.FirebaseClient;
@@ -18,15 +20,16 @@ import java.util.Map;
 
 public class SaleRepository {
 
-    public interface OnSaleCompleteListener {
+    private static final String TAG =
+            "SaleRepository";
 
+    public interface OnSaleCompleteListener {
         void onSuccess(String saleId);
 
         void onFailure(String error);
     }
 
     public interface OnSalesLoadedListener {
-
         void onSalesLoaded(List<Sale> sales);
 
         void onFailure(String error);
@@ -39,18 +42,15 @@ public class SaleRepository {
             List<SaleItem> cartItems,
             OnSaleCompleteListener listener
     ) {
-
         if (listener == null) {
             return;
         }
 
         if (cartItems == null
                 || cartItems.isEmpty()) {
-
             listener.onFailure(
                     "Add at least one product to the sale."
             );
-
             return;
         }
 
@@ -58,36 +58,42 @@ public class SaleRepository {
                 validateCart(cartItems);
 
         if (validationError != null) {
-
             listener.onFailure(validationError);
             return;
         }
 
-        String saleId =
-                FirebaseClient.sales
-                        .push()
-                        .getKey();
+        String userId =
+                FirebaseClient.getCurrentUserId();
 
-        if (saleId == null
-                || saleId.trim().isEmpty()) {
+        DatabaseReference productsReference =
+                FirebaseClient.getProductsReference();
+
+        DatabaseReference salesReference =
+                FirebaseClient.getSalesReference();
+
+        if (userId == null
+                || userId.trim().isEmpty()
+                || productsReference == null
+                || salesReference == null) {
 
             listener.onFailure(
-                    "Could not generate a sale ID."
+                    "User is not logged in."
             );
-
             return;
         }
 
-        /*
-         * Read all current products immediately before checkout.
-         *
-         * This ensures that the sale uses the latest:
-         * - stock
-         * - cost price
-         * - normal selling price
-         * - quantity offer
-         */
-        FirebaseClient.products
+        String saleId =
+                salesReference.push().getKey();
+
+        if (saleId == null
+                || saleId.trim().isEmpty()) {
+            listener.onFailure(
+                    "Could not generate a sale ID."
+            );
+            return;
+        }
+
+        productsReference
                 .addListenerForSingleValueEvent(
                         new ValueEventListener() {
 
@@ -95,11 +101,12 @@ public class SaleRepository {
                             public void onDataChange(
                                     @NonNull DataSnapshot snapshot
                             ) {
-
                                 prepareAndSaveSale(
+                                        userId,
                                         saleId,
                                         cartItems,
                                         snapshot,
+                                        productsReference,
                                         listener
                                 );
                             }
@@ -108,6 +115,11 @@ public class SaleRepository {
                             public void onCancelled(
                                     @NonNull DatabaseError error
                             ) {
+                                Log.e(
+                                        TAG,
+                                        "Products could not be loaded.",
+                                        error.toException()
+                                );
 
                                 listener.onFailure(
                                         getErrorMessage(
@@ -121,12 +133,13 @@ public class SaleRepository {
     }
 
     private void prepareAndSaveSale(
+            String userId,
             String saleId,
             List<SaleItem> cartItems,
             DataSnapshot productsSnapshot,
+            DatabaseReference productsReference,
             OnSaleCompleteListener listener
     ) {
-
         List<SaleItem> savedItems =
                 new ArrayList<>();
 
@@ -134,22 +147,37 @@ public class SaleRepository {
                 new HashMap<>();
 
         for (SaleItem cartItem : cartItems) {
+            if (cartItem == null) {
+                listener.onFailure(
+                        "The cart contains an invalid item."
+                );
+                return;
+            }
 
             String productId =
                     cartItem.getProductId();
 
+            if (productId == null
+                    || productId.trim().isEmpty()) {
+                listener.onFailure(
+                        "A cart item has no product ID."
+                );
+                return;
+            }
+
+            String cleanProductId =
+                    productId.trim();
+
             DataSnapshot productSnapshot =
                     productsSnapshot.child(
-                            productId
+                            cleanProductId
                     );
 
             if (!productSnapshot.exists()) {
-
                 listener.onFailure(
-                        cartItem.getProductName()
+                        safeProductName(cartItem)
                                 + " could not be found."
                 );
-
                 return;
             }
 
@@ -159,19 +187,15 @@ public class SaleRepository {
                     );
 
             if (product == null) {
-
                 listener.onFailure(
                         "Could not read product information for "
-                                + cartItem.getProductName()
+                                + safeProductName(cartItem)
                                 + "."
                 );
-
                 return;
             }
 
-            product.setId(
-                    productSnapshot.getKey()
-            );
+            product.setId(cleanProductId);
 
             normaliseOlderProduct(product);
 
@@ -179,29 +203,24 @@ public class SaleRepository {
                     cartItem.getQuantity();
 
             if (requestedQuantity <= 0) {
-
                 listener.onFailure(
                         "Invalid quantity for "
                                 + product.getName()
                                 + "."
                 );
-
                 return;
             }
 
             if (product.getStock() <= 0) {
-
                 listener.onFailure(
                         product.getName()
                                 + " is out of stock."
                 );
-
                 return;
             }
 
             if (requestedQuantity
                     > product.getStock()) {
-
                 listener.onFailure(
                         "Only "
                                 + product.getStock()
@@ -209,68 +228,49 @@ public class SaleRepository {
                                 + product.getName()
                                 + " are available."
                 );
-
                 return;
             }
 
             if (product.getCostPrice() <= 0) {
-
                 listener.onFailure(
                         product.getName()
                                 + " does not have a valid cost price."
                 );
-
                 return;
             }
 
             if (product.getSellingPrice() <= 0) {
-
                 listener.onFailure(
                         product.getName()
                                 + " does not have a valid selling price."
                 );
-
                 return;
             }
 
-            /*
-             * Ensure the normal price is not below cost.
-             */
             if (product.getSellingPrice()
                     < product.getCostPrice()) {
-
                 listener.onFailure(
                         product.getName()
                                 + " has a selling price below its cost price."
                 );
-
                 return;
             }
 
-            /*
-             * Ensure an enabled offer does not sell below cost.
-             */
             if (product.hasValidQuantityOffer()) {
-
                 double offerCost =
                         product.getCostPrice()
                                 * product.getOfferQuantity();
 
                 if (product.getOfferPrice()
                         < offerCost) {
-
                     listener.onFailure(
                             product.getName()
                                     + " has an offer price below its total cost."
                     );
-
                     return;
                 }
             }
 
-            /*
-             * This automatically applies the saved quantity offer.
-             */
             SaleItem savedItem =
                     SaleItem.fromProduct(
                             product,
@@ -284,24 +284,19 @@ public class SaleRepository {
                             - requestedQuantity;
 
             /*
-             * Update only the stock field.
+             * Full atomic path:
+             * products/{uid}/{productId}/stock
              */
             updates.put(
                     "products/"
-                            + productId
+                            + userId
+                            + "/"
+                            + cleanProductId
                             + "/stock",
                     remainingStock
             );
         }
 
-        /*
-         * Sale calculates:
-         * - totalAmount
-         * - totalCost
-         * - totalProfit
-         * - totalCustomerSaving
-         * - totalItems
-         */
         Sale sale =
                 new Sale(
                         saleId,
@@ -309,60 +304,64 @@ public class SaleRepository {
                         savedItems
                 );
 
+        /*
+         * Full atomic path:
+         * sales/{uid}/{saleId}
+         */
         updates.put(
-                "sales/" + saleId,
+                "sales/"
+                        + userId
+                        + "/"
+                        + saleId,
                 sale
         );
 
         DatabaseReference rootReference =
-                FirebaseClient.products
-                        .getRoot();
+                productsReference.getRoot();
 
-        /*
-         * Stock reductions and sale saving happen together.
-         */
         rootReference
                 .updateChildren(updates)
-                .addOnSuccessListener(
-                        unused ->
-                                listener.onSuccess(
-                                        saleId
-                                )
-                )
-                .addOnFailureListener(
-                        exception ->
-                                listener.onFailure(
-                                        getErrorMessage(
-                                                exception.getMessage(),
-                                                "The sale could not be saved."
-                                        )
-                                )
-                );
+                .addOnSuccessListener(unused -> {
+                    Log.d(
+                            TAG,
+                            "Sale completed successfully. ID: "
+                                    + saleId
+                    );
+
+                    listener.onSuccess(saleId);
+                })
+                .addOnFailureListener(exception -> {
+                    Log.e(
+                            TAG,
+                            "The sale could not be saved.",
+                            exception
+                    );
+
+                    listener.onFailure(
+                            getErrorMessage(
+                                    exception.getMessage(),
+                                    "The sale could not be saved."
+                            )
+                    );
+                });
     }
 
-    /*
-     * Allows old Firebase products to be read safely.
-     */
     private void normaliseOlderProduct(
             Product product
     ) {
-
         if (product.getPurchaseUnit() == null
                 || product.getPurchaseUnit()
                 .trim()
                 .isEmpty()) {
-
             product.setPurchaseUnit("Unit");
         }
 
         if (product.getUnitsPerPurchase() <= 0) {
-
             product.setUnitsPerPurchase(1);
         }
 
         if (product.getPurchaseUnitPrice() <= 0
                 && product.getCostPrice() > 0) {
-
             product.setPurchaseUnitPrice(
                     product.getCostPrice()
                             * product.getUnitsPerPurchase()
@@ -370,7 +369,6 @@ public class SaleRepository {
         }
 
         if (!product.isQuantityOfferEnabled()) {
-
             product.setOfferQuantity(0);
             product.setOfferPrice(0);
         }
@@ -379,11 +377,8 @@ public class SaleRepository {
     private String validateCart(
             List<SaleItem> cartItems
     ) {
-
         for (SaleItem item : cartItems) {
-
             if (item == null) {
-
                 return "The cart contains an invalid item.";
             }
 
@@ -391,12 +386,10 @@ public class SaleRepository {
                     || item.getProductId()
                     .trim()
                     .isEmpty()) {
-
                 return "A cart item has no product ID.";
             }
 
             if (item.getQuantity() <= 0) {
-
                 return "Invalid quantity for "
                         + safeProductName(item)
                         + ".";
@@ -409,12 +402,11 @@ public class SaleRepository {
     private String safeProductName(
             SaleItem item
     ) {
-
-        if (item.getProductName() == null
+        if (item == null
+                || item.getProductName() == null
                 || item.getProductName()
                 .trim()
                 .isEmpty()) {
-
             return "product";
         }
 
@@ -424,20 +416,32 @@ public class SaleRepository {
     public void getSales(
             OnSalesLoadedListener listener
     ) {
-
         if (listener == null) {
             return;
         }
 
-        FirebaseClient.sales
-                .addValueEventListener(
+        DatabaseReference salesReference =
+                FirebaseClient.getSalesReference();
+
+        if (salesReference == null) {
+            listener.onFailure(
+                    "User is not logged in."
+            );
+            return;
+        }
+
+        /*
+         * One-time read prevents repeated active listeners
+         * each time the dashboard resumes.
+         */
+        salesReference
+                .addListenerForSingleValueEvent(
                         new ValueEventListener() {
 
                             @Override
                             public void onDataChange(
                                     @NonNull DataSnapshot snapshot
                             ) {
-
                                 List<Sale> sales =
                                         new ArrayList<>();
 
@@ -453,18 +457,17 @@ public class SaleRepository {
                                         continue;
                                     }
 
-                                    if (sale.getId() == null
-                                            || sale.getId()
+                                    String firebaseKey =
+                                            saleSnapshot.getKey();
+
+                                    if (firebaseKey != null
+                                            && !firebaseKey
                                             .trim()
                                             .isEmpty()) {
-
-                                        sale.setId(
-                                                saleSnapshot.getKey()
-                                        );
+                                        sale.setId(firebaseKey);
                                     }
 
                                     if (sale.getItems() == null) {
-
                                         sale.setItems(
                                                 new ArrayList<>()
                                         );
@@ -473,6 +476,12 @@ public class SaleRepository {
                                     sales.add(sale);
                                 }
 
+                                Log.d(
+                                        TAG,
+                                        "Sales loaded: "
+                                                + sales.size()
+                                );
+
                                 listener.onSalesLoaded(sales);
                             }
 
@@ -480,6 +489,11 @@ public class SaleRepository {
                             public void onCancelled(
                                     @NonNull DatabaseError error
                             ) {
+                                Log.e(
+                                        TAG,
+                                        "Sales could not be loaded.",
+                                        error.toException()
+                                );
 
                                 listener.onFailure(
                                         getErrorMessage(
@@ -496,10 +510,8 @@ public class SaleRepository {
             String message,
             String defaultMessage
     ) {
-
         if (message == null
                 || message.trim().isEmpty()) {
-
             return defaultMessage;
         }
 

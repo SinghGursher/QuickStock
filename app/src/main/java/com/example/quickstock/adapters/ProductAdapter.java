@@ -135,8 +135,8 @@ public class ProductAdapter
 
             txtPrice.setText(
                     String.format(
-                            Locale.getDefault(),
-                            "KSh %.2f",
+                            Locale.US,
+                            "KSh %,.2f",
                             product.getSellingPrice()
                     )
             );

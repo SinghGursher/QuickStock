@@ -3,6 +3,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/salesRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
@@ -34,31 +35,49 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textSalesTitle" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchProducts"
+    <!-- Permanently visible outlined search field -->
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSalesSearch"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:iconifiedByDefault="false"
-        android:queryHint="Search products..."
+        android:layout_height="56dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeColor="?attr/colorOutline"
+        app:strokeWidth="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textSalesSubtitle" />
+        app:layout_constraintTop_toBottomOf="@id/textSalesSubtitle">
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchProducts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:iconifiedByDefault="false"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:queryHint="Search products"
+            app:iconifiedByDefault="false" />
+
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerSalesProducts"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:clipToPadding="false"
         android:paddingTop="4dp"
         android:paddingBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/cardSaleSummary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchProducts" />
+        app:layout_constraintTop_toBottomOf="@id/cardSalesSearch" />
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressProducts"

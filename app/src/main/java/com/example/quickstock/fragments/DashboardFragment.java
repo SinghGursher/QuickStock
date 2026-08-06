@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.quickstock.R;
 import com.example.quickstock.activities.AddProductActivity;
+import com.example.quickstock.activities.SalesHistoryActivity;
 import com.example.quickstock.models.Product;
 import com.example.quickstock.models.Sale;
 import com.example.quickstock.models.SaleItem;
@@ -21,6 +21,7 @@ import com.example.quickstock.repositories.ProductRepository;
 import com.example.quickstock.repositories.SaleRepository;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.text.NumberFormat;
 import java.util.Calendar;
@@ -30,6 +31,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class DashboardFragment extends Fragment {
+
+    private View dashboardRoot;
 
     private TextView txtTopProduct;
     private TextView txtTopProductProfit;
@@ -45,13 +48,15 @@ public class DashboardFragment extends Fragment {
     private ProductRepository productRepository;
     private SaleRepository saleRepository;
 
+    private boolean dashboardLoading = false;
+
     private final NumberFormat moneyFormat =
             NumberFormat.getNumberInstance(
                     new Locale("en", "KE")
             );
 
     public DashboardFragment() {
-        // Required empty constructor
+        // Required empty constructor.
     }
 
     @Override
@@ -72,211 +77,176 @@ public class DashboardFragment extends Fragment {
             @NonNull View view,
             @Nullable Bundle savedInstanceState
     ) {
-        super.onViewCreated(
-                view,
-                savedInstanceState
-        );
+        super.onViewCreated(view, savedInstanceState);
 
         initialiseViews(view);
 
-        productRepository =
-                new ProductRepository();
-
-        saleRepository =
-                new SaleRepository();
+        productRepository = new ProductRepository();
+        saleRepository = new SaleRepository();
 
         setupQuickActions();
-        loadInventorySummary();
-        loadSalesSummary();
     }
 
-    private void initialiseViews(
-            View view
-    ) {
+    private void initialiseViews(View view) {
+        dashboardRoot =
+                view.findViewById(R.id.dashboardRoot);
 
         txtTopProduct =
-                view.findViewById(
-                        R.id.txtTopProduct
-                );
+                view.findViewById(R.id.txtTopProduct);
 
         txtTopProductProfit =
-                view.findViewById(
-                        R.id.txtTopProductProfit
-                );
+                view.findViewById(R.id.txtTopProductProfit);
 
         txtSales =
-                view.findViewById(
-                        R.id.txtSales
-                );
+                view.findViewById(R.id.txtSales);
 
         txtLowStock =
-                view.findViewById(
-                        R.id.txtLowStock
-                );
+                view.findViewById(R.id.txtLowStock);
 
         txtProfit =
-                view.findViewById(
-                        R.id.txtProfit
-                );
+                view.findViewById(R.id.txtProfit);
 
         buttonAddSale =
-                view.findViewById(
-                        R.id.buttonAddSale
-                );
+                view.findViewById(R.id.buttonAddSale);
 
         buttonAddProduct =
-                view.findViewById(
-                        R.id.buttonAddProduct
-                );
+                view.findViewById(R.id.buttonAddProduct);
 
         buttonViewInventory =
-                view.findViewById(
-                        R.id.buttonViewInventory
-                );
+                view.findViewById(R.id.buttonViewInventory);
 
         buttonSalesHistory =
-                view.findViewById(
-                        R.id.buttonSalesHistory
-                );
+                view.findViewById(R.id.buttonSalesHistory);
     }
 
     private void setupQuickActions() {
-
         buttonAddSale.setOnClickListener(
-                view -> navigateToTab(
-                        R.id.nav_sales
-                )
+                view -> navigateToTab(R.id.nav_sales)
         );
 
         buttonAddProduct.setOnClickListener(
                 view -> {
-
-                    Intent intent =
-                            new Intent(
-                                    requireContext(),
-                                    AddProductActivity.class
-                            );
+                    Intent intent = new Intent(
+                            requireContext(),
+                            AddProductActivity.class
+                    );
 
                     startActivity(intent);
                 }
         );
 
         buttonViewInventory.setOnClickListener(
-                view -> navigateToTab(
-                        R.id.nav_inventory
-                )
+                view -> navigateToTab(R.id.nav_inventory)
         );
 
-        /*
-         * Sales History is disabled in the XML for now.
-         * This listener can remain as a fallback message.
-         */
         buttonSalesHistory.setOnClickListener(
-                view ->
-                        Toast.makeText(
-                                requireContext(),
-                                "Sales History is coming soon.",
-                                Toast.LENGTH_SHORT
-                        ).show()
+                view -> {
+                    Intent intent = new Intent(
+                            requireContext(),
+                            SalesHistoryActivity.class
+                    );
+
+                    startActivity(intent);
+                }
         );
     }
 
-    private void loadInventorySummary() {
+    private void loadDashboard() {
+        if (dashboardLoading) {
+            return;
+        }
 
+        if (productRepository == null
+                || saleRepository == null) {
+            return;
+        }
+
+        dashboardLoading = true;
+
+        loadInventorySummary();
+        loadSalesSummary();
+    }
+
+    private void loadInventorySummary() {
         productRepository.getProducts(
-                new ProductRepository
-                        .OnProductsLoadedListener() {
+                new ProductRepository.OnProductsLoadedListener() {
 
                     @Override
                     public void onProductsLoaded(
                             List<Product> products
                     ) {
-
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
                         int lowStockCount = 0;
 
                         if (products != null) {
-
-                            for (Product product
-                                    : products) {
-
+                            for (Product product : products) {
                                 if (product != null
                                         && product.isLowStock()) {
-
                                     lowStockCount++;
                                 }
                             }
                         }
 
                         txtLowStock.setText(
-                                String.valueOf(
-                                        lowStockCount
-                                )
+                                String.valueOf(lowStockCount)
                         );
                     }
 
                     @Override
-                    public void onFailure(
-                            String error
-                    ) {
-
-                        if (!isAdded()) {
+                    public void onFailure(String error) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
                         txtLowStock.setText("0");
 
-                        Toast.makeText(
-                                requireContext(),
+                        showMessage(
                                 "Unable to load inventory: "
-                                        + getErrorMessage(error),
-                                Toast.LENGTH_LONG
-                        ).show();
+                                        + getErrorMessage(error)
+                        );
                     }
                 }
         );
     }
 
     private void loadSalesSummary() {
-
         saleRepository.getSales(
-                new SaleRepository
-                        .OnSalesLoadedListener() {
+                new SaleRepository.OnSalesLoadedListener() {
 
                     @Override
                     public void onSalesLoaded(
                             List<Sale> sales
                     ) {
+                        dashboardLoading = false;
 
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
-                        calculateTodayMetrics(
-                                sales
-                        );
+                        calculateTodayMetrics(sales);
                     }
 
                     @Override
-                    public void onFailure(
-                            String error
-                    ) {
+                    public void onFailure(String error) {
+                        dashboardLoading = false;
 
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
                         resetSalesValues();
 
-                        Toast.makeText(
-                                requireContext(),
+                        showMessage(
                                 "Unable to load sales: "
-                                        + getErrorMessage(error),
-                                Toast.LENGTH_LONG
-                        ).show();
+                                        + getErrorMessage(error)
+                        );
                     }
                 }
         );
@@ -285,75 +255,43 @@ public class DashboardFragment extends Fragment {
     private void calculateTodayMetrics(
             List<Sale> sales
     ) {
-
-        long todayStart =
-                getStartOfToday();
-
-        long tomorrowStart =
-                getStartOfTomorrow();
+        long todayStart = getStartOfToday();
+        long tomorrowStart = getStartOfTomorrow();
 
         double todayRevenue = 0;
         double todayProfit = 0;
 
-        /*
-         * Stores the combined profit generated by
-         * each product during today's sales.
-         */
         Map<String, Double> profitByProduct =
                 new HashMap<>();
 
-        /*
-         * Stores product names using their Firebase IDs.
-         */
         Map<String, String> productNames =
                 new HashMap<>();
 
         if (sales != null) {
-
             for (Sale sale : sales) {
-
                 if (sale == null) {
                     continue;
                 }
 
-                long timestamp =
-                        sale.getTimestamp();
+                long timestamp = sale.getTimestamp();
 
-                /*
-                 * Exclude older sales without timestamps
-                 * and sales outside today's date range.
-                 */
                 if (timestamp < todayStart
                         || timestamp >= tomorrowStart) {
-
                     continue;
                 }
 
-                todayRevenue +=
-                        sale.getTotalAmount();
-
-                /*
-                 * Use the stored sale profit snapshot.
-                 */
-                todayProfit +=
-                        sale.getTotalProfit();
+                todayRevenue += sale.getTotalAmount();
+                todayProfit += sale.getTotalProfit();
 
                 List<SaleItem> saleItems =
                         sale.getItems();
 
                 if (saleItems == null
                         || saleItems.isEmpty()) {
-
                     continue;
                 }
 
-                /*
-                 * A Sale represents a whole transaction.
-                 * Product information is stored inside
-                 * each SaleItem.
-                 */
                 for (SaleItem item : saleItems) {
-
                     if (item == null) {
                         continue;
                     }
@@ -362,40 +300,29 @@ public class DashboardFragment extends Fragment {
                             item.getProductId();
 
                     if (productId == null
-                            || productId
-                            .trim()
-                            .isEmpty()) {
-
+                            || productId.trim().isEmpty()) {
                         continue;
                     }
 
-                    double itemProfit =
-                            item.getProfit();
-
                     double previousProfit =
-                            profitByProduct
-                                    .getOrDefault(
-                                            productId,
-                                            0.0
-                                    );
+                            profitByProduct.getOrDefault(
+                                    productId,
+                                    0.0
+                            );
 
                     profitByProduct.put(
                             productId,
-                            previousProfit
-                                    + itemProfit
+                            previousProfit + item.getProfit()
                     );
 
                     String productName =
                             item.getProductName();
 
                     if (productName != null
-                            && !productName
-                            .trim()
-                            .isEmpty()) {
-
+                            && !productName.trim().isEmpty()) {
                         productNames.put(
                                 productId,
-                                productName
+                                productName.trim()
                         );
                     }
                 }
@@ -403,15 +330,11 @@ public class DashboardFragment extends Fragment {
         }
 
         txtSales.setText(
-                formatMoney(
-                        todayRevenue
-                )
+                formatMoney(todayRevenue)
         );
 
         txtProfit.setText(
-                formatMoney(
-                        todayProfit
-                )
+                formatMoney(todayProfit)
         );
 
         displayTopProfitProduct(
@@ -424,34 +347,24 @@ public class DashboardFragment extends Fragment {
             Map<String, Double> profitByProduct,
             Map<String, String> productNames
     ) {
-
         String topProductId = null;
         double highestProfit = 0;
 
         for (Map.Entry<String, Double> entry
                 : profitByProduct.entrySet()) {
 
-            String productId =
-                    entry.getKey();
-
-            Double productProfit =
-                    entry.getValue();
+            String productId = entry.getKey();
+            Double productProfit = entry.getValue();
 
             if (productId == null
                     || productProfit == null) {
-
                 continue;
             }
 
             if (topProductId == null
-                    || productProfit
-                    > highestProfit) {
-
-                topProductId =
-                        productId;
-
-                highestProfit =
-                        productProfit;
+                    || productProfit > highestProfit) {
+                topProductId = productId;
+                highestProfit = productProfit;
             }
         }
 
@@ -463,99 +376,59 @@ public class DashboardFragment extends Fragment {
             );
 
             txtTopProductProfit.setText(
-                    formatMoney(0)
-                            + " profit"
+                    formatMoney(0) + " profit"
             );
 
             return;
         }
 
         String productName =
-                productNames.get(
-                        topProductId
-                );
+                productNames.get(topProductId);
 
         if (productName == null
-                || productName
-                .trim()
-                .isEmpty()) {
-
-            productName =
-                    "Unknown product";
+                || productName.trim().isEmpty()) {
+            productName = "Unknown product";
         }
 
-        txtTopProduct.setText(
-                productName
-        );
+        txtTopProduct.setText(productName);
 
         txtTopProductProfit.setText(
-                formatMoney(
-                        highestProfit
-                ) + " profit"
+                formatMoney(highestProfit)
+                        + " profit"
         );
     }
 
     private void resetSalesValues() {
-
-        txtSales.setText(
-                formatMoney(0)
-        );
-
-        txtProfit.setText(
-                formatMoney(0)
-        );
+        txtSales.setText(formatMoney(0));
+        txtProfit.setText(formatMoney(0));
 
         txtTopProduct.setText(
                 "No sales today"
         );
 
         txtTopProductProfit.setText(
-                formatMoney(0)
-                        + " profit"
+                formatMoney(0) + " profit"
         );
     }
 
-    private String formatMoney(
-            double amount
-    ) {
-
+    private String formatMoney(double amount) {
         return "KSh "
-                + moneyFormat.format(
-                amount
-        );
+                + moneyFormat.format(amount);
     }
 
     private long getStartOfToday() {
-
         Calendar calendar =
                 Calendar.getInstance();
 
-        calendar.set(
-                Calendar.HOUR_OF_DAY,
-                0
-        );
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
 
-        calendar.set(
-                Calendar.MINUTE,
-                0
-        );
-
-        calendar.set(
-                Calendar.SECOND,
-                0
-        );
-
-        calendar.set(
-                Calendar.MILLISECOND,
-                0
-        );
-
-        return calendar
-                .getTimeInMillis();
+        return calendar.getTimeInMillis();
     }
 
     private long getStartOfTomorrow() {
-
         Calendar calendar =
                 Calendar.getInstance();
 
@@ -568,14 +441,10 @@ public class DashboardFragment extends Fragment {
                 1
         );
 
-        return calendar
-                .getTimeInMillis();
+        return calendar.getTimeInMillis();
     }
 
-    private void navigateToTab(
-            int menuItemId
-    ) {
-
+    private void navigateToTab(int menuItemId) {
         if (getActivity() == null) {
             return;
         }
@@ -586,12 +455,9 @@ public class DashboardFragment extends Fragment {
                 );
 
         if (bottomNavigation == null) {
-
-            Toast.makeText(
-                    requireContext(),
-                    "Navigation could not be opened.",
-                    Toast.LENGTH_SHORT
-            ).show();
+            showMessage(
+                    "Navigation could not be opened."
+            );
 
             return;
         }
@@ -601,32 +467,57 @@ public class DashboardFragment extends Fragment {
         );
     }
 
-    private String getErrorMessage(
-            String error
-    ) {
+    private void showMessage(String message) {
+        if (!isAdded()
+                || dashboardRoot == null) {
+            return;
+        }
 
+        String safeMessage =
+                message == null
+                        || message.trim().isEmpty()
+                        ? "Something went wrong."
+                        : message.trim();
+
+        Snackbar.make(
+                dashboardRoot,
+                safeMessage,
+                Snackbar.LENGTH_LONG
+        ).show();
+    }
+
+    private String getErrorMessage(String error) {
         if (error == null
                 || error.trim().isEmpty()) {
-
             return "Unknown error.";
         }
 
-        return error;
+        return error.trim();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        loadDashboard();
+    }
 
-        /*
-         * Reload after returning from Add Product
-         * or after completing a sale.
-         */
-        if (productRepository != null
-                && saleRepository != null) {
+    @Override
+    public void onDestroyView() {
+        dashboardLoading = false;
 
-            loadInventorySummary();
-            loadSalesSummary();
-        }
+        dashboardRoot = null;
+
+        txtTopProduct = null;
+        txtTopProductProfit = null;
+        txtSales = null;
+        txtLowStock = null;
+        txtProfit = null;
+
+        buttonAddSale = null;
+        buttonAddProduct = null;
+        buttonViewInventory = null;
+        buttonSalesHistory = null;
+
+        super.onDestroyView();
     }
 }

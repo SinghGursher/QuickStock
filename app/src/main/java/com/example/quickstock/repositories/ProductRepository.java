@@ -8,6 +8,7 @@ import com.example.quickstock.firebase.FirebaseClient;
 import com.example.quickstock.models.Product;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -15,7 +16,8 @@ import java.util.List;
 
 public class ProductRepository {
 
-    private static final String TAG = "ProductRepository";
+    private static final String TAG =
+            "ProductRepository";
 
     public interface OnCompleteListener {
         void onSuccess();
@@ -24,7 +26,9 @@ public class ProductRepository {
     }
 
     public interface OnProductsLoadedListener {
-        void onProductsLoaded(List<Product> products);
+        void onProductsLoaded(
+                List<Product> products
+        );
 
         void onFailure(String error);
     }
@@ -42,18 +46,26 @@ public class ProductRepository {
             Product product,
             OnCompleteListener listener
     ) {
+        if (listener == null) {
+            return;
+        }
 
         if (product == null) {
-
             listener.onFailure(
                     "Product information is missing."
             );
+            return;
+        }
 
+        DatabaseReference productsReference =
+                getProductsReference(listener);
+
+        if (productsReference == null) {
             return;
         }
 
         String productId =
-                FirebaseClient.products.push().getKey();
+                productsReference.push().getKey();
 
         if (productId == null
                 || productId.trim().isEmpty()) {
@@ -70,16 +82,12 @@ public class ProductRepository {
             return;
         }
 
-        /*
-         * The product ID must be the same as its Firebase child key.
-         */
         product.setId(productId);
 
-        FirebaseClient.products
+        productsReference
                 .child(productId)
                 .setValue(product)
                 .addOnSuccessListener(unused -> {
-
                     Log.d(
                             TAG,
                             "Product added successfully. ID: "
@@ -89,7 +97,6 @@ public class ProductRepository {
                     listener.onSuccess();
                 })
                 .addOnFailureListener(exception -> {
-
                     Log.e(
                             TAG,
                             "Failed to add product.",
@@ -108,22 +115,34 @@ public class ProductRepository {
     /*
      * READ ALL PRODUCTS
      *
-     * This listener remains active, so inventory and sales screens
-     * receive updates whenever Firebase product data changes.
+     * This uses a one-time read to prevent duplicate
+     * active listeners when a Fragment resumes.
      */
     public void getProducts(
             OnProductsLoadedListener listener
     ) {
+        if (listener == null) {
+            return;
+        }
 
-        FirebaseClient.products
-                .addValueEventListener(
+        DatabaseReference productsReference =
+                FirebaseClient.getProductsReference();
+
+        if (productsReference == null) {
+            listener.onFailure(
+                    "User is not logged in."
+            );
+            return;
+        }
+
+        productsReference
+                .addListenerForSingleValueEvent(
                         new ValueEventListener() {
 
                             @Override
                             public void onDataChange(
                                     @NonNull DataSnapshot snapshot
                             ) {
-
                                 List<Product> products =
                                         new ArrayList<>();
 
@@ -136,13 +155,11 @@ public class ProductRepository {
                                             );
 
                                     if (product == null) {
-
                                         Log.w(
                                                 TAG,
                                                 "Skipped unreadable product: "
                                                         + productSnapshot.getKey()
                                         );
-
                                         continue;
                                     }
 
@@ -151,32 +168,14 @@ public class ProductRepository {
 
                                     if (firebaseKey == null
                                             || firebaseKey.trim().isEmpty()) {
-
                                         Log.w(
                                                 TAG,
                                                 "Skipped product with missing Firebase key."
                                         );
-
                                         continue;
                                     }
 
-                                    /*
-                                     * Always use the real Firebase child key.
-                                     *
-                                     * Do not only set it when product.getId()
-                                     * is empty. A stored ID may exist but may
-                                     * be old or different from the node key.
-                                     */
                                     product.setId(firebaseKey);
-
-                                    Log.d(
-                                            TAG,
-                                            "Loaded product: "
-                                                    + product.getName()
-                                                    + ", ID: "
-                                                    + firebaseKey
-                                    );
-
                                     products.add(product);
                                 }
 
@@ -195,7 +194,6 @@ public class ProductRepository {
                             public void onCancelled(
                                     @NonNull DatabaseError error
                             ) {
-
                                 Log.e(
                                         TAG,
                                         "Failed to load products.",
@@ -220,21 +218,32 @@ public class ProductRepository {
             String productId,
             OnProductLoadedListener listener
     ) {
+        if (listener == null) {
+            return;
+        }
 
         if (productId == null
                 || productId.trim().isEmpty()) {
-
             listener.onFailure(
                     "Invalid product ID."
             );
+            return;
+        }
 
+        DatabaseReference productsReference =
+                FirebaseClient.getProductsReference();
+
+        if (productsReference == null) {
+            listener.onFailure(
+                    "User is not logged in."
+            );
             return;
         }
 
         String cleanProductId =
                 productId.trim();
 
-        FirebaseClient.products
+        productsReference
                 .child(cleanProductId)
                 .addListenerForSingleValueEvent(
                         new ValueEventListener() {
@@ -243,9 +252,7 @@ public class ProductRepository {
                             public void onDataChange(
                                     @NonNull DataSnapshot snapshot
                             ) {
-
                                 if (!snapshot.exists()) {
-
                                     Log.w(
                                             TAG,
                                             "Product not found. ID: "
@@ -255,7 +262,6 @@ public class ProductRepository {
                                     listener.onFailure(
                                             "Product was not found."
                                     );
-
                                     return;
                                 }
 
@@ -265,11 +271,9 @@ public class ProductRepository {
                                         );
 
                                 if (product == null) {
-
                                     listener.onFailure(
                                             "Unable to read product data."
                                     );
-
                                     return;
                                 }
 
@@ -278,27 +282,13 @@ public class ProductRepository {
 
                                 if (firebaseKey == null
                                         || firebaseKey.trim().isEmpty()) {
-
                                     listener.onFailure(
                                             "Product Firebase key is missing."
                                     );
-
                                     return;
                                 }
 
-                                /*
-                                 * Always replace the stored ID with the real
-                                 * Firebase child key.
-                                 */
                                 product.setId(firebaseKey);
-
-                                Log.d(
-                                        TAG,
-                                        "Product loaded: "
-                                                + product.getName()
-                                                + ", ID: "
-                                                + firebaseKey
-                                );
 
                                 listener.onProductLoaded(
                                         product
@@ -309,7 +299,6 @@ public class ProductRepository {
                             public void onCancelled(
                                     @NonNull DatabaseError error
                             ) {
-
                                 Log.e(
                                         TAG,
                                         "Failed to load product.",
@@ -334,13 +323,14 @@ public class ProductRepository {
             Product product,
             OnCompleteListener listener
     ) {
+        if (listener == null) {
+            return;
+        }
 
         if (product == null) {
-
             listener.onFailure(
                     "Product information is missing."
             );
-
             return;
         }
 
@@ -349,27 +339,28 @@ public class ProductRepository {
 
         if (productId == null
                 || productId.trim().isEmpty()) {
-
             listener.onFailure(
                     "Product ID is missing."
             );
+            return;
+        }
 
+        DatabaseReference productsReference =
+                getProductsReference(listener);
+
+        if (productsReference == null) {
             return;
         }
 
         String cleanProductId =
                 productId.trim();
 
-        /*
-         * Keep the model's ID identical to the Firebase child key.
-         */
         product.setId(cleanProductId);
 
-        FirebaseClient.products
+        productsReference
                 .child(cleanProductId)
                 .setValue(product)
                 .addOnSuccessListener(unused -> {
-
                     Log.d(
                             TAG,
                             "Product updated successfully. ID: "
@@ -379,7 +370,6 @@ public class ProductRepository {
                     listener.onSuccess();
                 })
                 .addOnFailureListener(exception -> {
-
                     Log.e(
                             TAG,
                             "Failed to update product.",
@@ -402,25 +392,32 @@ public class ProductRepository {
             String productId,
             OnCompleteListener listener
     ) {
+        if (listener == null) {
+            return;
+        }
 
         if (productId == null
                 || productId.trim().isEmpty()) {
-
             listener.onFailure(
                     "Invalid product ID."
             );
+            return;
+        }
 
+        DatabaseReference productsReference =
+                getProductsReference(listener);
+
+        if (productsReference == null) {
             return;
         }
 
         String cleanProductId =
                 productId.trim();
 
-        FirebaseClient.products
+        productsReference
                 .child(cleanProductId)
                 .removeValue()
                 .addOnSuccessListener(unused -> {
-
                     Log.d(
                             TAG,
                             "Product deleted successfully. ID: "
@@ -430,7 +427,6 @@ public class ProductRepository {
                     listener.onSuccess();
                 })
                 .addOnFailureListener(exception -> {
-
                     Log.e(
                             TAG,
                             "Failed to delete product.",
@@ -446,17 +442,28 @@ public class ProductRepository {
                 });
     }
 
-    /*
-     * Returns a readable Firebase error message.
-     */
+    private DatabaseReference getProductsReference(
+            OnCompleteListener listener
+    ) {
+        DatabaseReference productsReference =
+                FirebaseClient.getProductsReference();
+
+        if (productsReference == null) {
+            listener.onFailure(
+                    "User is not logged in."
+            );
+            return null;
+        }
+
+        return productsReference;
+    }
+
     private String getErrorMessage(
             String firebaseMessage,
             String defaultMessage
     ) {
-
         if (firebaseMessage == null
                 || firebaseMessage.trim().isEmpty()) {
-
             return defaultMessage;
         }
 

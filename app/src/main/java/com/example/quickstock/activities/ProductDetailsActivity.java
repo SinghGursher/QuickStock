@@ -6,8 +6,9 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.quickstock.R;
@@ -16,6 +17,7 @@ import com.example.quickstock.repositories.ProductRepository;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
 
@@ -24,6 +26,36 @@ public class ProductDetailsActivity
 
     public static final String EXTRA_PRODUCT_ID =
             "product_id";
+
+    public static final String EXTRA_CHANGE_TYPE =
+            "product_change_type";
+
+    public static final String CHANGE_UPDATED =
+            "product_updated";
+
+    public static final String CHANGE_DELETED =
+            "product_deleted";
+
+    /*
+     * Receives the result only when AddProductActivity
+     * successfully updates the product in Firebase.
+     */
+    private final ActivityResultLauncher<Intent>
+            editProductLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts
+                            .StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode()
+                                != RESULT_OK) {
+                            return;
+                        }
+
+                        returnChangeToInventory(
+                                CHANGE_UPDATED
+                        );
+                    }
+            );
 
     private MaterialToolbar toolbar;
     private ProgressBar progressBar;
@@ -83,18 +115,24 @@ public class ProductDetailsActivity
         if (productId == null
                 || productId.trim().isEmpty()) {
 
-            Toast.makeText(
-                    this,
-                    "Invalid product ID.",
-                    Toast.LENGTH_LONG
-            ).show();
+            showBlockingError(
+                    "Product unavailable",
+                    "A valid product could not be opened."
+            );
 
-            finish();
+            return;
         }
+
+        /*
+         * Initial load only.
+         *
+         * There is deliberately no onResume() Firebase
+         * reload in this activity.
+         */
+        loadProduct();
     }
 
     private void initialiseViews() {
-
         toolbar =
                 findViewById(
                         R.id.toolbarProductDetails
@@ -212,11 +250,9 @@ public class ProductDetailsActivity
     }
 
     private void setupToolbar() {
-
         setSupportActionBar(toolbar);
 
         if (getSupportActionBar() != null) {
-
             getSupportActionBar()
                     .setTitle(
                             "Product Details"
@@ -236,7 +272,6 @@ public class ProductDetailsActivity
     }
 
     private void setupClickListeners() {
-
         buttonEditProduct.setOnClickListener(
                 view -> openEditProduct()
         );
@@ -247,10 +282,8 @@ public class ProductDetailsActivity
     }
 
     private void loadProduct() {
-
         if (productId == null
                 || productId.trim().isEmpty()) {
-
             return;
         }
 
@@ -265,17 +298,19 @@ public class ProductDetailsActivity
                     public void onProductLoaded(
                             Product product
                     ) {
+                        if (isFinishing()
+                                || isDestroyed()) {
+                            return;
+                        }
+
                         showLoading(false);
 
                         if (product == null) {
+                            showBlockingError(
+                                    "Product unavailable",
+                                    "This product could not be found."
+                            );
 
-                            Toast.makeText(
-                                    ProductDetailsActivity.this,
-                                    "Product could not be found.",
-                                    Toast.LENGTH_LONG
-                            ).show();
-
-                            finish();
                             return;
                         }
 
@@ -305,31 +340,32 @@ public class ProductDetailsActivity
                     public void onFailure(
                             String error
                     ) {
+                        if (isFinishing()
+                                || isDestroyed()) {
+                            return;
+                        }
+
                         showLoading(false);
 
-                        Toast.makeText(
-                                ProductDetailsActivity.this,
+                        showBlockingError(
+                                "Unable to load product",
                                 getErrorMessage(
                                         error,
                                         "Product could not be loaded."
-                                ),
-                                Toast.LENGTH_LONG
-                        ).show();
-
-                        finish();
+                                )
+                        );
                     }
                 }
         );
     }
 
     /**
-     * Allows products saved before the new fields were added
-     * to continue loading without crashing.
+     * Allows products saved before the newer product fields
+     * were introduced to continue loading safely.
      */
     private void normaliseOlderProductData(
             Product product
     ) {
-
         if (product.getPurchaseUnit() == null
                 || product.getPurchaseUnit()
                 .trim()
@@ -341,7 +377,6 @@ public class ProductDetailsActivity
         }
 
         if (product.getUnitsPerPurchase() <= 0) {
-
             product.setUnitsPerPurchase(
                     1
             );
@@ -349,7 +384,7 @@ public class ProductDetailsActivity
 
         /*
          * Recreate the complete purchase-unit price when an
-         * older product only contains costPrice.
+         * older product contains only costPrice.
          */
         if (product.getPurchaseUnitPrice() <= 0
                 && product.getCostPrice() > 0) {
@@ -360,12 +395,7 @@ public class ProductDetailsActivity
             );
         }
 
-        /*
-         * Clear invalid offer fields for products where
-         * quantity offers are disabled.
-         */
         if (!product.isQuantityOfferEnabled()) {
-
             product.setOfferQuantity(0);
             product.setOfferPrice(0);
         }
@@ -374,7 +404,6 @@ public class ProductDetailsActivity
     private void displayProduct(
             Product product
     ) {
-
         textProductName.setText(
                 getDisplayText(
                         product.getName(),
@@ -445,9 +474,7 @@ public class ProductDetailsActivity
     private void displayPurchaseUnitInformation(
             Product product
     ) {
-
         if (!product.usesAdvancedPurchaseUnit()) {
-
             layoutPurchaseUnitDetails.setVisibility(
                     View.GONE
             );
@@ -491,9 +518,7 @@ public class ProductDetailsActivity
     private void displayQuantityOffer(
             Product product
     ) {
-
         if (!product.hasValidQuantityOffer()) {
-
             layoutQuantityOfferDetails.setVisibility(
                     View.GONE
             );
@@ -559,9 +584,7 @@ public class ProductDetailsActivity
     private void displayStockStatus(
             int stock
     ) {
-
         if (stock <= 0) {
-
             textStockStatus.setText(
                     "Out of stock"
             );
@@ -576,7 +599,6 @@ public class ProductDetailsActivity
         }
 
         if (stock <= 5) {
-
             textStockStatus.setText(
                     "Low stock"
             );
@@ -602,14 +624,10 @@ public class ProductDetailsActivity
     }
 
     private void openEditProduct() {
-
         if (currentProduct == null) {
-
-            Toast.makeText(
-                    this,
-                    "Product is still loading.",
-                    Toast.LENGTH_SHORT
-            ).show();
+            showMessage(
+                    "Product information is still loading."
+            );
 
             return;
         }
@@ -690,18 +708,16 @@ public class ProductDetailsActivity
                 currentProduct.getOfferPrice()
         );
 
-        startActivity(intent);
+        editProductLauncher.launch(
+                intent
+        );
     }
 
     private void showDeleteConfirmation() {
-
         if (currentProduct == null) {
-
-            Toast.makeText(
-                    this,
-                    "Product is still loading.",
-                    Toast.LENGTH_SHORT
-            ).show();
+            showMessage(
+                    "Product information is still loading."
+            );
 
             return;
         }
@@ -735,9 +751,12 @@ public class ProductDetailsActivity
     }
 
     private void deleteProduct() {
-
         if (productId == null
                 || productId.trim().isEmpty()) {
+
+            showMessage(
+                    "This product has no valid ID."
+            );
 
             return;
         }
@@ -751,42 +770,119 @@ public class ProductDetailsActivity
 
                     @Override
                     public void onSuccess() {
+                        if (isFinishing()
+                                || isDestroyed()) {
+                            return;
+                        }
 
                         showLoading(false);
 
-                        Toast.makeText(
-                                ProductDetailsActivity.this,
-                                "Product deleted successfully.",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
-                        finish();
+                        /*
+                         * Inventory reloads its products and shows
+                         * the deletion success message.
+                         */
+                        returnChangeToInventory(
+                                CHANGE_DELETED
+                        );
                     }
 
                     @Override
                     public void onFailure(
                             String error
                     ) {
+                        if (isFinishing()
+                                || isDestroyed()) {
+                            return;
+                        }
 
                         showLoading(false);
 
-                        Toast.makeText(
-                                ProductDetailsActivity.this,
+                        showMessage(
                                 getErrorMessage(
                                         error,
                                         "Product could not be deleted."
-                                ),
-                                Toast.LENGTH_LONG
-                        ).show();
+                                )
+                        );
                     }
                 }
         );
     }
 
+    private void returnChangeToInventory(
+            String changeType
+    ) {
+        Intent resultIntent =
+                new Intent();
+
+        resultIntent.putExtra(
+                EXTRA_CHANGE_TYPE,
+                changeType
+        );
+
+        setResult(
+                RESULT_OK,
+                resultIntent
+        );
+
+        finish();
+    }
+
+    /*
+     * Recoverable feedback stays on the current screen.
+     */
+    private void showMessage(
+            String message
+    ) {
+        if (isFinishing()
+                || isDestroyed()) {
+            return;
+        }
+
+        String safeMessage =
+                message == null
+                        || message.trim().isEmpty()
+                        ? "Something went wrong."
+                        : message.trim();
+
+        Snackbar.make(
+                findViewById(
+                        android.R.id.content
+                ),
+                safeMessage,
+                Snackbar.LENGTH_LONG
+        ).show();
+    }
+
+    /*
+     * Used when this screen cannot continue without valid
+     * product information.
+     */
+    private void showBlockingError(
+            String title,
+            String message
+    ) {
+        if (isFinishing()
+                || isDestroyed()) {
+            return;
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton(
+                        "Return to inventory",
+                        (dialog, which) -> {
+                            dialog.dismiss();
+                            finish();
+                        }
+                )
+                .show();
+    }
+
     private void showLoading(
             boolean loading
     ) {
-
         progressBar.setVisibility(
                 loading
                         ? View.VISIBLE
@@ -805,7 +901,6 @@ public class ProductDetailsActivity
     private String formatMoney(
             double amount
     ) {
-
         return String.format(
                 Locale.getDefault(),
                 "KSh %,.2f",
@@ -817,39 +912,25 @@ public class ProductDetailsActivity
             String value,
             String defaultValue
     ) {
-
         if (value == null
                 || value.trim().isEmpty()) {
 
             return defaultValue;
         }
 
-        return value;
+        return value.trim();
     }
 
     private String getErrorMessage(
             String error,
             String defaultMessage
     ) {
-
         if (error == null
                 || error.trim().isEmpty()) {
 
             return defaultMessage;
         }
 
-        return error;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (productRepository != null
-                && productId != null
-                && !productId.trim().isEmpty()) {
-
-            loadProduct();
-        }
+        return error.trim();
     }
 }

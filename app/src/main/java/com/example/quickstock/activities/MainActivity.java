@@ -1,5 +1,6 @@
 package com.example.quickstock.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -9,6 +10,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import android.view.View;
 
 import com.example.quickstock.R;
 import com.example.quickstock.fragments.DashboardFragment;
@@ -16,6 +18,7 @@ import com.example.quickstock.fragments.InventoryFragment;
 import com.example.quickstock.fragments.SalesFragment;
 import com.example.quickstock.fragments.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +27,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+
+            Intent intent = new Intent(
+                    MainActivity.this,
+                    LoginActivity.class
+            );
+
+            intent.setFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
+            );
+
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -34,6 +55,29 @@ public class MainActivity extends AppCompatActivity {
         });
 
         bottomNavigation = findViewById(R.id.bottomNavigation);
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+                bottomNavigation,
+                (view, windowInsets) -> {
+
+                    /*
+                     * MainActivity's root layout already handles
+                     * all system-bar insets.
+                     */
+                    view.setPadding(
+                            0,
+                            0,
+                            0,
+                            0
+                    );
+
+                    return windowInsets;
+                }
+        );
+
+        ViewCompat.requestApplyInsets(
+                bottomNavigation
+        );
 
         // Load Dashboard first
         if (savedInstanceState == null) {
@@ -68,6 +112,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void setBottomNavigationVisible(
+            boolean visible
+    ) {
+        if (bottomNavigation == null) {
+            return;
+        }
+
+        bottomNavigation.setVisibility(
+                visible
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+    }
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()

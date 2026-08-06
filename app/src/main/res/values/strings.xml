@@ -3,6 +3,9 @@
     <string name="tap_or_hold_quantity">Tap or hold + and − to adjust quantity</string>
     <string name="no_products_available">No products available</string>
     <string name="selected_items">Selected units</string>
+    <string name="splash_tagline">
+    Manage stock. Grow business.
+    </string>
     <string name="sale_total">Total</string>
     <string name="clear">Clear</string>
     <string name="complete_sale">Complete Sale</string>

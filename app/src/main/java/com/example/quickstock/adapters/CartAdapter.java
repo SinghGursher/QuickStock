@@ -285,8 +285,8 @@ public class CartAdapter
 
             textCartUnitPrice.setText(
                     String.format(
-                            Locale.getDefault(),
-                            "KSh %,.2f each",
+                            Locale.US,
+                            "Subtotal: KSh %,.2f",
                             saleItem.getSellingPrice()
                     )
             );
@@ -299,7 +299,7 @@ public class CartAdapter
 
             textCartSubtotal.setText(
                     String.format(
-                            Locale.getDefault(),
+                            Locale.US,
                             "Subtotal: KSh %,.2f",
                             saleItem.getSubtotal()
                     )
@@ -343,8 +343,8 @@ public class CartAdapter
 
                     textCartOffer.setText(
                             String.format(
-                                    Locale.getDefault(),
-                                    "Offer: %d for KSh %,.2f • Add %d more",
+                                    Locale.US,
+                                    "Subtotal: KSh %,.2f",
                                     saleItem.getOfferQuantity(),
                                     saleItem.getOfferPrice(),
                                     remaining
@@ -355,10 +355,10 @@ public class CartAdapter
 
                     textCartOffer.setText(
                             String.format(
-                                    Locale.getDefault(),
-                                    "Offer: %d for KSh %,.2f",
-                                    saleItem.getOfferQuantity(),
-                                    saleItem.getOfferPrice()
+                                Locale.US,
+                                "Subtotal: KSh %,.2f",
+                                saleItem.getOfferQuantity(),
+                                saleItem.getOfferPrice()
                             )
                     );
                 }
@@ -416,8 +416,8 @@ public class CartAdapter
 
             textCartSaving.setText(
                     String.format(
-                            Locale.getDefault(),
-                            "Customer saves KSh %,.2f",
+                                    Locale.US,
+                                    "Subtotal: KSh %,.2f",
                             saleItem.getCustomerSaving()
                     )
             );

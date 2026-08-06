@@ -27,7 +27,7 @@
             android:text="Coca Cola"
             android:textStyle="bold"
             android:textSize="18sp"
-            android:textColor="@android:color/black"/>
+            android:textColor="?attr/colorOnSurface"/>
 
         <TextView
             android:id="@+id/txtCategory"

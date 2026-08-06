@@ -9,9 +9,21 @@
     <!-- Accent -->
     <color name="accentOrange">#FF9800</color>
 
+    <color name="quickStockText">#20282C</color>
+
+    <color name="splashTagline">#526168</color>
+
+    <color name="white">#FFFFFF</color>
+
+    <color name="quickStockPurple">#6750A4</color>
+
+    <color name="black">#000000</color>
+
     <!-- Background -->
     <color name="background">#FAFAFA</color>
     <color name="surface">#FFFFFF</color>
+
+    <color name="splashBackground">#FFFFFF</color>
 
     <!-- Text -->
     <color name="textPrimary">#212121</color>
