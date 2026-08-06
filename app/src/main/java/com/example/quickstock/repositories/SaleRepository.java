@@ -3,6 +3,7 @@ package com.example.quickstock.repositories;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import com.google.android.gms.tasks.Task;
 
 import com.example.quickstock.firebase.FirebaseClient;
 import com.example.quickstock.models.Product;
@@ -24,7 +25,17 @@ public class SaleRepository {
             "SaleRepository";
 
     public interface OnSaleCompleteListener {
+
+        /*
+         * Called after Firebase confirms an online sale.
+         */
         void onSuccess(String saleId);
+
+        /*
+         * Called after the sale is saved locally and added
+         * to Firebase's persistent synchronization queue.
+         */
+        void onQueuedForSync(String saleId);
 
         void onFailure(String error);
     }
@@ -319,31 +330,90 @@ public class SaleRepository {
         DatabaseReference rootReference =
                 productsReference.getRoot();
 
-        rootReference
-                .updateChildren(updates)
-                .addOnSuccessListener(unused -> {
-                    Log.d(
-                            TAG,
-                            "Sale completed successfully. ID: "
-                                    + saleId
-                    );
+        boolean queuedOffline =
+                FirebaseClient.isDefinitelyOffline();
 
-                    listener.onSuccess(saleId);
-                })
-                .addOnFailureListener(exception -> {
-                    Log.e(
-                            TAG,
-                            "The sale could not be saved.",
-                            exception
-                    );
+        try {
+            Task<Void> writeTask =
+                    rootReference.updateChildren(updates);
 
-                    listener.onFailure(
-                            getErrorMessage(
-                                    exception.getMessage(),
-                                    "The sale could not be saved."
-                            )
-                    );
-                });
+            if (queuedOffline) {
+                /*
+                 * updateChildren() has already applied both the
+                 * sale and the stock reductions to Firebase's
+                 * persistent local cache.
+                 *
+                 * Firebase will send the complete atomic update
+                 * when the connection returns.
+                 */
+                writeTask
+                        .addOnSuccessListener(
+                                unused ->
+                                        Log.d(
+                                                TAG,
+                                                "Offline sale synchronized successfully. ID: "
+                                                        + saleId
+                                        )
+                        )
+                        .addOnFailureListener(
+                                exception ->
+                                        Log.e(
+                                                TAG,
+                                                "Offline sale was rejected while synchronizing. ID: "
+                                                        + saleId,
+                                                exception
+                                        )
+                        );
+
+                Log.d(
+                        TAG,
+                        "Sale saved locally and queued for synchronization. ID: "
+                                + saleId
+                );
+
+                listener.onQueuedForSync(saleId);
+                return;
+            }
+
+            writeTask
+                    .addOnSuccessListener(unused -> {
+                        Log.d(
+                                TAG,
+                                "Sale completed successfully. ID: "
+                                        + saleId
+                        );
+
+                        listener.onSuccess(saleId);
+                    })
+                    .addOnFailureListener(exception -> {
+                        Log.e(
+                                TAG,
+                                "The sale could not be saved.",
+                                exception
+                        );
+
+                        listener.onFailure(
+                                getErrorMessage(
+                                        exception.getMessage(),
+                                        "The sale could not be saved."
+                                )
+                        );
+                    });
+
+        } catch (RuntimeException exception) {
+            Log.e(
+                    TAG,
+                    "Could not start the sale write.",
+                    exception
+            );
+
+            listener.onFailure(
+                    getErrorMessage(
+                            exception.getMessage(),
+                            "The sale could not be saved."
+                    )
+            );
+        }
     }
 
     private void normaliseOlderProduct(

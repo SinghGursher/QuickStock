@@ -30,6 +30,9 @@ public class ProductDetailsActivity
     public static final String EXTRA_CHANGE_TYPE =
             "product_change_type";
 
+    public static final String EXTRA_PENDING_SYNC =
+            "product_pending_sync";
+
     public static final String CHANGE_UPDATED =
             "product_updated";
 
@@ -51,8 +54,20 @@ public class ProductDetailsActivity
                             return;
                         }
 
+                        Intent resultData =
+                                result.getData();
+
+                        boolean pendingSync =
+                                resultData != null
+                                        && resultData.getBooleanExtra(
+                                        AddProductActivity
+                                                .EXTRA_PENDING_SYNC,
+                                        false
+                                );
+
                         returnChangeToInventory(
-                                CHANGE_UPDATED
+                                CHANGE_UPDATED,
+                                pendingSync
                         );
                     }
             );
@@ -782,10 +797,25 @@ public class ProductDetailsActivity
                          * the deletion success message.
                          */
                         returnChangeToInventory(
-                                CHANGE_DELETED
+                                CHANGE_DELETED,
+                                false
                         );
                     }
 
+                    @Override
+                    public void onQueuedForSync() {
+                        if (isFinishing()
+                                || isDestroyed()) {
+                            return;
+                        }
+
+                        showLoading(false);
+
+                        returnChangeToInventory(
+                                CHANGE_DELETED,
+                                true
+                        );
+                    }
                     @Override
                     public void onFailure(
                             String error
@@ -809,7 +839,8 @@ public class ProductDetailsActivity
     }
 
     private void returnChangeToInventory(
-            String changeType
+            String changeType,
+            boolean pendingSync
     ) {
         Intent resultIntent =
                 new Intent();
@@ -817,6 +848,11 @@ public class ProductDetailsActivity
         resultIntent.putExtra(
                 EXTRA_CHANGE_TYPE,
                 changeType
+        );
+
+        resultIntent.putExtra(
+                EXTRA_PENDING_SYNC,
+                pendingSync
         );
 
         setResult(

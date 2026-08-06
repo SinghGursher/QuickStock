@@ -1,5 +1,8 @@
 package com.example.quickstock.models;
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+@IgnoreExtraProperties
 public class Product {
 
     private String id;
@@ -236,6 +239,7 @@ public class Product {
         return true;
     }
 
+    @Exclude
     public boolean isLowStock() {
         return stock <= 5;
     }
@@ -352,6 +356,7 @@ public class Product {
                 - calculateTotalCost(quantity);
     }
 
+    @Exclude
     public double getProfitPerUnit() {
         return sellingPrice - costPrice;
     }

@@ -11,6 +11,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
 
 import com.example.quickstock.R;
 import com.example.quickstock.models.Product;
@@ -65,6 +66,9 @@ public class AddProductActivity
 
     public static final String EXTRA_OFFER_PRICE =
             "offer_price";
+
+    public static final String EXTRA_PENDING_SYNC =
+            "product_pending_sync";
 
     private TextInputEditText etName;
     private TextInputEditText etCategory;
@@ -880,29 +884,28 @@ public class AddProductActivity
     }
 
     private void addProduct(Product product) {
-
         productRepository.addProduct(
                 product,
-                new ProductRepository
-                        .OnCompleteListener() {
+                new ProductRepository.OnCompleteListener() {
 
                     @Override
                     public void onSuccess() {
-                        setResult(RESULT_OK);
-                        finish();
+                        finishWithProductResult(false);
+                    }
+
+                    @Override
+                    public void onQueuedForSync() {
+                        finishWithProductResult(true);
                     }
 
                     @Override
                     public void onFailure(String error) {
-
                         btnSave.setEnabled(true);
 
                         showMessage(
                                 getErrorMessage(
                                         error,
-                                        isEditMode
-                                                ? "Product could not be updated."
-                                                : "Product could not be added."
+                                        "Product could not be added."
                                 )
                         );
                     }
@@ -911,34 +914,57 @@ public class AddProductActivity
     }
 
     private void updateProduct(Product product) {
-
         productRepository.updateProduct(
                 product,
-                new ProductRepository
-                        .OnCompleteListener() {
+                new ProductRepository.OnCompleteListener() {
 
                     @Override
                     public void onSuccess() {
-                        setResult(RESULT_OK);
-                        finish();
+                        finishWithProductResult(false);
+                    }
+
+                    @Override
+                    public void onQueuedForSync() {
+                        finishWithProductResult(true);
                     }
 
                     @Override
                     public void onFailure(String error) {
-
                         btnSave.setEnabled(true);
 
                         showMessage(
                                 getErrorMessage(
                                         error,
-                                        isEditMode
-                                                ? "Product could not be updated."
-                                                : "Product could not be added."
+                                        "Product could not be updated."
                                 )
                         );
                     }
                 }
         );
+    }
+
+    private void finishWithProductResult(
+            boolean pendingSync
+    ) {
+        if (isFinishing()
+                || isDestroyed()) {
+            return;
+        }
+
+        Intent resultIntent =
+                new Intent();
+
+        resultIntent.putExtra(
+                EXTRA_PENDING_SYNC,
+                pendingSync
+        );
+
+        setResult(
+                RESULT_OK,
+                resultIntent
+        );
+
+        finish();
     }
 
     private String getText(
