@@ -3,6 +3,7 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dashboardRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F8F9FA"
@@ -23,7 +24,7 @@
             android:id="@+id/txtGreeting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Good Morning 👋"
+            android:text="Good Morning &#128075;"
             android:textColor="#757575"
             android:textSize="16sp" />
 
@@ -85,7 +86,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⭐"
+                        android:text="&#11088;"
                         android:textSize="30sp" />
 
                     <TextView
@@ -150,7 +151,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="💰"
+                        android:text="&#128176;"
                         android:textSize="30sp" />
 
                     <TextView
@@ -212,7 +213,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚠️"
+                        android:text="&#9888;&#65039;"
                         android:textSize="30sp" />
 
                     <TextView
@@ -271,7 +272,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📈"
+                        android:text="&#128200;"
                         android:textSize="30sp" />
 
                     <TextView
@@ -337,28 +338,35 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonAddSale"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="58dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:text="New Sale"
                 android:textAllCaps="false"
+                android:textColor="?attr/colorSurface"
                 android:textSize="15sp"
-                app:backgroundTint="@color/primaryGreen"
-                app:cornerRadius="14dp" />
+                app:backgroundTint="@android:color/transparent"
+                app:cornerRadius="14dp"
+                app:strokeColor="?attr/colorSurface"
+                app:strokeWidth="1dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonAddProduct"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="58dp"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
                 android:text="Add Product"
                 android:textAllCaps="false"
+                android:textColor="?attr/colorSurface"
                 android:textSize="15sp"
+                app:backgroundTint="@android:color/transparent"
                 app:cornerRadius="14dp"
-                app:strokeColor="@color/primaryGreen" />
+                app:strokeColor="?attr/colorSurface"
+                app:strokeWidth="1dp" />
 
         </LinearLayout>
 
@@ -374,43 +382,37 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonViewInventory"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="58dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:text="Inventory"
                 android:textAllCaps="false"
+                android:textColor="?attr/colorSurface"
                 android:textSize="15sp"
+                app:backgroundTint="@android:color/transparent"
                 app:cornerRadius="14dp"
-                app:strokeColor="@color/primaryGreen" />
+                app:strokeColor="?attr/colorSurface"
+                app:strokeWidth="1dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSalesHistory"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="58dp"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:enabled="false"
                 android:text="Sales History"
                 android:textAllCaps="false"
+                android:textColor="?attr/colorSurface"
                 android:textSize="15sp"
+                app:backgroundTint="@android:color/transparent"
                 app:cornerRadius="14dp"
-                app:strokeColor="@color/primaryGreen" />
+                app:strokeColor="?attr/colorSurface"
+                app:strokeWidth="1dp" />
 
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/textSalesHistoryComingSoon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="6dp"
-            android:layout_marginEnd="4dp"
-            android:text="Sales History coming next"
-            android:textColor="#757575"
-            android:textSize="12sp" />
 
     </LinearLayout>
 

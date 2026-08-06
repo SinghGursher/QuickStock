@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,6 +37,10 @@ public class SalesProductAdapter
         void onQuantityClicked(
                 Product product,
                 int currentQuantity
+        );
+
+        void onMessage(
+                String message
         );
     }
 
@@ -443,7 +447,7 @@ public class SalesProductAdapter
 
             textProductPrice.setText(
                     String.format(
-                            Locale.getDefault(),
+                            Locale.US,
                             "KSh %,.2f each",
                             product.getSellingPrice()
                     )
@@ -525,7 +529,7 @@ public class SalesProductAdapter
 
             textProductOffer.setText(
                     String.format(
-                            Locale.getDefault(),
+                            Locale.US,
                             "Offer: %d for KSh %,.2f",
                             product.getOfferQuantity(),
                             product.getOfferPrice()
@@ -633,8 +637,11 @@ public class SalesProductAdapter
 
                 plusHoldController.stop();
 
-                showToast(
-                        boundProduct.getName()
+                notifyMessage(
+                        getSafeText(
+                                boundProduct.getName(),
+                                "Product"
+                        )
                                 + " is out of stock."
                 );
 
@@ -646,7 +653,7 @@ public class SalesProductAdapter
 
                 plusHoldController.stop();
 
-                showToast(
+                notifyMessage(
                         "Only "
                                 + availableStock
                                 + " units are available."
@@ -807,10 +814,9 @@ public class SalesProductAdapter
 
                 textSelectedSubtotal.setText(
                         String.format(
-                                Locale.getDefault(),
-                                "Subtotal: KSh %,.2f • Save KSh %,.2f",
-                                subtotal,
-                                saving
+                                Locale.US,
+                                "Subtotal: KSh %,.2f",
+                                subtotal
                         )
                 );
 
@@ -818,9 +824,10 @@ public class SalesProductAdapter
 
                 textSelectedSubtotal.setText(
                         String.format(
-                                Locale.getDefault(),
-                                "Subtotal: KSh %,.2f",
-                                subtotal
+                                Locale.US,
+                                "Subtotal: KSh %,.2f • Save KSh %,.2f",
+                                subtotal,
+                                saving
                         )
                 );
             }
@@ -840,15 +847,14 @@ public class SalesProductAdapter
             return text;
         }
 
-        private void showToast(
+        private void notifyMessage(
                 String message
         ) {
-
-            Toast.makeText(
-                    itemView.getContext(),
-                    message,
-                    Toast.LENGTH_SHORT
-            ).show();
+            if (listener != null) {
+                listener.onMessage(
+                        message
+                );
+            }
         }
 
         void stopHoldActions() {

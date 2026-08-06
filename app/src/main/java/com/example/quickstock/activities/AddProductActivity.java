@@ -7,7 +7,8 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -320,14 +321,13 @@ public class AddProductActivity
         if (productId == null
                 || productId.trim().isEmpty()) {
 
-            Toast.makeText(
-                    this,
-                    "Invalid product ID.",
-                    Toast.LENGTH_LONG
-            ).show();
-
+            showBlockingError(
+                    "Product unavailable",
+                    "A valid product could not be opened for editing."
+            );
             finish();
             return;
+
         }
 
         btnSave.setText("Update Product");
@@ -888,13 +888,7 @@ public class AddProductActivity
 
                     @Override
                     public void onSuccess() {
-
-                        Toast.makeText(
-                                AddProductActivity.this,
-                                "Product added successfully.",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
+                        setResult(RESULT_OK);
                         finish();
                     }
 
@@ -903,14 +897,14 @@ public class AddProductActivity
 
                         btnSave.setEnabled(true);
 
-                        Toast.makeText(
-                                AddProductActivity.this,
+                        showMessage(
                                 getErrorMessage(
                                         error,
-                                        "Product could not be added."
-                                ),
-                                Toast.LENGTH_LONG
-                        ).show();
+                                        isEditMode
+                                                ? "Product could not be updated."
+                                                : "Product could not be added."
+                                )
+                        );
                     }
                 }
         );
@@ -925,13 +919,7 @@ public class AddProductActivity
 
                     @Override
                     public void onSuccess() {
-
-                        Toast.makeText(
-                                AddProductActivity.this,
-                                "Product updated successfully.",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
+                        setResult(RESULT_OK);
                         finish();
                     }
 
@@ -940,14 +928,14 @@ public class AddProductActivity
 
                         btnSave.setEnabled(true);
 
-                        Toast.makeText(
-                                AddProductActivity.this,
+                        showMessage(
                                 getErrorMessage(
                                         error,
-                                        "Product could not be updated."
-                                ),
-                                Toast.LENGTH_LONG
-                        ).show();
+                                        isEditMode
+                                                ? "Product could not be updated."
+                                                : "Product could not be added."
+                                )
+                        );
                     }
                 }
         );
@@ -1058,6 +1046,38 @@ public class AddProductActivity
         );
     }
 
+    private void showMessage(
+            String message
+    ) {
+        String safeMessage =
+                message == null
+                        || message.trim().isEmpty()
+                        ? "Something went wrong."
+                        : message.trim();
+
+        Snackbar.make(
+                findViewById(
+                        android.R.id.content
+                ),
+                safeMessage,
+                Snackbar.LENGTH_LONG
+        ).show();
+    }
+
+    private void showBlockingError(
+            String title,
+            String message
+    ) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton(
+                        "Go back",
+                        (dialog, which) -> finish()
+                )
+                .show();
+    }
     private String getErrorMessage(
             String error,
             String defaultMessage

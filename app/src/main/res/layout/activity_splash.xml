@@ -1,10 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/splashRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.SplashActivity">
+    android:background="@color/splashBackground">
+
+    <LinearLayout
+        android:id="@+id/logoContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.82">
+
+        <ImageView
+            android:id="@+id/imgSplashLogo"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
+            android:src="@drawable/quickstock_logo_vector"
+            app:layout_constraintDimensionRatio="1:1" />
+
+        <TextView
+            android:id="@+id/txtSplashAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-12dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/app_name"
+            android:textColor="@color/quickStockText"
+            android:textSize="38sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtSplashTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:letterSpacing="0.12"
+            android:text="@string/splash_tagline"
+            android:textAllCaps="true"
+            android:textColor="@color/splashTagline"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/splashProgress"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginBottom="48dp"
+        android:indeterminateTint="@color/primaryGreen"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

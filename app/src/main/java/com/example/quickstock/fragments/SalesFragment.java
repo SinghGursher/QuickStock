@@ -7,24 +7,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+import java.util.Comparator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quickstock.R;
+import com.example.quickstock.activities.MainActivity;
 import com.example.quickstock.adapters.SalesProductAdapter;
 import com.example.quickstock.models.Product;
 import com.example.quickstock.models.SaleItem;
 import com.example.quickstock.repositories.ProductRepository;
 import com.example.quickstock.repositories.SaleRepository;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,9 +40,11 @@ import java.util.Map;
 
 public class SalesFragment extends Fragment {
 
+    private View salesRoot;
+    private View cardSaleSummary;
+
     private RecyclerView recyclerSalesProducts;
     private SearchView searchProducts;
-
     private CircularProgressIndicator progressProducts;
 
     private TextView textEmptyProducts;
@@ -53,10 +61,10 @@ public class SalesFragment extends Fragment {
     private SaleRepository saleRepository;
 
     /*
-     * Product ID -> offer-aware SaleItem.
+     * Product ID -> selected sale item.
      *
      * LinkedHashMap preserves the order in which products
-     * were selected.
+     * were added to the current sale.
      */
     private final Map<String, SaleItem> cartItems =
             new LinkedHashMap<>();
@@ -73,7 +81,6 @@ public class SalesFragment extends Fragment {
             ViewGroup container,
             Bundle savedInstanceState
     ) {
-
         return inflater.inflate(
                 R.layout.fragment_sales,
                 container,
@@ -86,7 +93,6 @@ public class SalesFragment extends Fragment {
             @NonNull View view,
             @Nullable Bundle savedInstanceState
     ) {
-
         super.onViewCreated(
                 view,
                 savedInstanceState
@@ -96,14 +102,23 @@ public class SalesFragment extends Fragment {
         initialiseRepositories();
         initialiseProductList();
         initialiseButtons();
+        initialiseKeyboardHandling();
+        initialiseSaleConfirmationResult();
 
         updateSaleSummary();
         loadProducts();
     }
 
-    private void initialiseViews(
-            View view
-    ) {
+    private void initialiseViews(View view) {
+        salesRoot =
+                view.findViewById(
+                        R.id.salesRoot
+                );
+
+        cardSaleSummary =
+                view.findViewById(
+                        R.id.cardSaleSummary
+                );
 
         recyclerSalesProducts =
                 view.findViewById(
@@ -152,7 +167,6 @@ public class SalesFragment extends Fragment {
     }
 
     private void initialiseRepositories() {
-
         productRepository =
                 new ProductRepository();
 
@@ -161,7 +175,6 @@ public class SalesFragment extends Fragment {
     }
 
     private void initialiseProductList() {
-
         salesProductAdapter =
                 new SalesProductAdapter(
                         new SalesProductAdapter
@@ -172,7 +185,6 @@ public class SalesFragment extends Fragment {
                                     Product product,
                                     int quantity
                             ) {
-
                                 updateCartItem(
                                         product,
                                         quantity
@@ -184,11 +196,16 @@ public class SalesFragment extends Fragment {
                                     Product product,
                                     int currentQuantity
                             ) {
-
                                 showQuantityDialog(
                                         product,
                                         currentQuantity
                                 );
+                            }
+                            @Override
+                            public void onMessage(
+                                    String message
+                            ) {
+                                showMessage(message);
                             }
                         }
                 );
@@ -199,10 +216,7 @@ public class SalesFragment extends Fragment {
                 )
         );
 
-        recyclerSalesProducts.setHasFixedSize(
-                false
-        );
-
+        recyclerSalesProducts.setHasFixedSize(false);
         recyclerSalesProducts.setAdapter(
                 salesProductAdapter
         );
@@ -214,10 +228,8 @@ public class SalesFragment extends Fragment {
                     public boolean onQueryTextSubmit(
                             String query
                     ) {
-
-                        salesProductAdapter.filter(
-                                query
-                        );
+                        salesProductAdapter.filter(query);
+                        hideSearchKeyboard();
 
                         return true;
                     }
@@ -226,10 +238,7 @@ public class SalesFragment extends Fragment {
                     public boolean onQueryTextChange(
                             String newText
                     ) {
-
-                        salesProductAdapter.filter(
-                                newText
-                        );
+                        salesProductAdapter.filter(newText);
 
                         return true;
                     }
@@ -238,18 +247,61 @@ public class SalesFragment extends Fragment {
     }
 
     private void initialiseButtons() {
-
         buttonClearSale.setOnClickListener(
                 view -> clearSale()
         );
 
         buttonCompleteSale.setOnClickListener(
-                view -> completeSale()
+                view -> showSaleConfirmationSheet()
         );
     }
 
-    private void loadProducts() {
+    private void initialiseKeyboardHandling() {
+        ViewCompat.setOnApplyWindowInsetsListener(
+                salesRoot,
+                (view, windowInsets) -> {
+                    boolean keyboardVisible =
+                            windowInsets.isVisible(
+                                    WindowInsetsCompat
+                                            .Type
+                                            .ime()
+                            );
 
+                    updateKeyboardUi(
+                            keyboardVisible
+                    );
+
+                    return windowInsets;
+                }
+        );
+
+        ViewCompat.requestApplyInsets(
+                salesRoot
+        );
+    }
+
+    private void initialiseSaleConfirmationResult() {
+        getParentFragmentManager()
+                .setFragmentResultListener(
+                        SaleConfirmationBottomSheet
+                                .REQUEST_KEY,
+                        getViewLifecycleOwner(),
+                        (requestKey, result) -> {
+                            boolean confirmed =
+                                    result.getBoolean(
+                                            SaleConfirmationBottomSheet
+                                                    .KEY_CONFIRMED,
+                                            false
+                                    );
+
+                            if (confirmed) {
+                                completeSale();
+                            }
+                        }
+                );
+    }
+
+    private void loadProducts() {
         showLoading(true);
 
         productRepository.getProducts(
@@ -260,8 +312,8 @@ public class SalesFragment extends Fragment {
                     public void onProductsLoaded(
                             List<Product> products
                     ) {
-
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
@@ -270,11 +322,40 @@ public class SalesFragment extends Fragment {
                         List<Product> safeProducts =
                                 products == null
                                         ? new ArrayList<>()
-                                        : products;
+                                        : new ArrayList<>(
+                                        products
+                                );
+
+                        /*
+                         * Arrange products alphabetically by name.
+                         */
+                        safeProducts.sort(
+                                Comparator.comparing(
+                                        product ->
+                                                getSafeProductName(
+                                                        product
+                                                ),
+                                        String.CASE_INSENSITIVE_ORDER
+                                )
+                        );
 
                         salesProductAdapter.setProducts(
                                 safeProducts
                         );
+
+                        /*
+                         * Preserve the current search after refreshing
+                         * product data.
+                         */
+                        CharSequence currentQuery =
+                                searchProducts.getQuery();
+
+                        if (currentQuery != null
+                                && currentQuery.length() > 0) {
+                            salesProductAdapter.filter(
+                                    currentQuery.toString()
+                            );
+                        }
 
                         textEmptyProducts.setVisibility(
                                 safeProducts.isEmpty()
@@ -283,8 +364,8 @@ public class SalesFragment extends Fragment {
                         );
 
                         /*
-                         * Refresh quantities, stock, prices and offers
-                         * using the latest product values from Firebase.
+                         * Update selected products using the latest
+                         * stock, price and offer information.
                          */
                         synchroniseCartWithProducts(
                                 safeProducts
@@ -295,8 +376,8 @@ public class SalesFragment extends Fragment {
                     public void onFailure(
                             String error
                     ) {
-
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
@@ -312,15 +393,10 @@ public class SalesFragment extends Fragment {
         );
     }
 
-    /**
-     * Creates or updates an offer-aware SaleItem whenever
-     * the selected quantity changes.
-     */
     private void updateCartItem(
             Product product,
             int quantity
     ) {
-
         if (product == null
                 || product.getId() == null
                 || product.getId()
@@ -347,30 +423,26 @@ public class SalesFragment extends Fragment {
                 );
 
         if (safeQuantity <= 0) {
-
-            cartItems.remove(
-                    productId
-            );
+            cartItems.remove(productId);
 
         } else {
-
-            /*
-             * Important:
-             * This factory stores the selling price, cost price,
-             * offer quantity and offer price, then calculates the
-             * correct offer-aware subtotal.
-             */
-            SaleItem saleItem;
-
             try {
-
-                saleItem =
+                SaleItem saleItem =
                         SaleItem.fromProduct(
                                 product,
                                 safeQuantity
                         );
 
+                cartItems.put(
+                        productId,
+                        saleItem
+                );
+
             } catch (IllegalArgumentException exception) {
+                salesProductAdapter.setQuantity(
+                        productId,
+                        0
+                );
 
                 showMessage(
                         exception.getMessage()
@@ -378,27 +450,64 @@ public class SalesFragment extends Fragment {
 
                 return;
             }
-
-            cartItems.put(
-                    productId,
-                    saleItem
-            );
         }
 
         updateSaleSummary();
+    }
+
+    private void updateKeyboardUi(
+            boolean keyboardVisible
+    ) {
+        if (cardSaleSummary != null) {
+            cardSaleSummary.setVisibility(
+                    keyboardVisible
+                            ? View.GONE
+                            : View.VISIBLE
+            );
+        }
+
+        if (getActivity()
+                instanceof MainActivity) {
+
+            MainActivity mainActivity =
+                    (MainActivity) getActivity();
+
+            mainActivity.setBottomNavigationVisible(
+                    !keyboardVisible
+            );
+        }
+    }
+
+    private void hideSearchKeyboard() {
+        if (searchProducts == null) {
+            return;
+        }
+
+        searchProducts.clearFocus();
+
+        WindowInsetsControllerCompat controller =
+                ViewCompat.getWindowInsetsController(
+                        searchProducts
+                );
+
+        if (controller != null) {
+            controller.hide(
+                    WindowInsetsCompat
+                            .Type
+                            .ime()
+            );
+        }
     }
 
     private void showQuantityDialog(
             Product product,
             int currentQuantity
     ) {
-
         if (product == null) {
             return;
         }
 
         if (product.getStock() <= 0) {
-
             showMessage(
                     getSafeProductName(product)
                             + " is out of stock."
@@ -448,13 +557,8 @@ public class SalesFragment extends Fragment {
                 verticalPadding
         );
 
-        String dialogMessage =
-                buildQuantityDialogMessage(
-                        product
-                );
-
         AlertDialog dialog =
-                new AlertDialog.Builder(
+                new MaterialAlertDialogBuilder(
                         requireContext()
                 )
                         .setTitle(
@@ -463,7 +567,9 @@ public class SalesFragment extends Fragment {
                                 )
                         )
                         .setMessage(
-                                dialogMessage
+                                buildQuantityDialogMessage(
+                                        product
+                                )
                         )
                         .setView(
                                 quantityInput
@@ -480,13 +586,11 @@ public class SalesFragment extends Fragment {
 
         dialog.setOnShowListener(
                 unused -> {
-
                     dialog.getButton(
                                     AlertDialog.BUTTON_POSITIVE
                             )
                             .setOnClickListener(
                                     view -> {
-
                                         String enteredValue =
                                                 quantityInput
                                                         .getText()
@@ -494,7 +598,6 @@ public class SalesFragment extends Fragment {
                                                         .trim();
 
                                         if (enteredValue.isEmpty()) {
-
                                             quantityInput.setError(
                                                     "Enter a quantity."
                                             );
@@ -505,7 +608,6 @@ public class SalesFragment extends Fragment {
                                         int quantity;
 
                                         try {
-
                                             quantity =
                                                     Integer.parseInt(
                                                             enteredValue
@@ -514,7 +616,6 @@ public class SalesFragment extends Fragment {
                                         } catch (
                                                 NumberFormatException exception
                                         ) {
-
                                             quantityInput.setError(
                                                     "Enter a valid whole number."
                                             );
@@ -523,7 +624,6 @@ public class SalesFragment extends Fragment {
                                         }
 
                                         if (quantity < 0) {
-
                                             quantityInput.setError(
                                                     "Quantity cannot be negative."
                                             );
@@ -533,7 +633,6 @@ public class SalesFragment extends Fragment {
 
                                         if (quantity
                                                 > product.getStock()) {
-
                                             quantityInput.setError(
                                                     "Only "
                                                             + product.getStock()
@@ -568,7 +667,6 @@ public class SalesFragment extends Fragment {
     private String buildQuantityDialogMessage(
             Product product
     ) {
-
         StringBuilder message =
                 new StringBuilder();
 
@@ -591,7 +689,6 @@ public class SalesFragment extends Fragment {
         );
 
         if (product.hasValidQuantityOffer()) {
-
             message.append(
                     "\nOffer: "
             );
@@ -614,22 +711,97 @@ public class SalesFragment extends Fragment {
         return message.toString();
     }
 
-    private void completeSale() {
+    private void showSaleConfirmationSheet() {
+        if (!isAdded()
+                || saleInProgress
+                || cartItems.isEmpty()
+                || getParentFragmentManager()
+                .isStateSaved()) {
 
-        if (saleInProgress) {
             return;
         }
 
-        if (cartItems.isEmpty()) {
+        if (getParentFragmentManager()
+                .findFragmentByTag(
+                        SaleConfirmationBottomSheet.TAG
+                ) != null) {
 
+            return;
+        }
+
+        List<SaleItem> validItems =
+                getValidSaleItems();
+
+        if (validItems.isEmpty()) {
             showMessage(
-                    "Select at least one product."
+                    "Select at least one valid product."
             );
 
             return;
         }
 
-        List<SaleItem> saleItems =
+        ArrayList<String> productNames =
+                new ArrayList<>();
+
+        ArrayList<Integer> quantities =
+                new ArrayList<>();
+
+        double[] subtotals =
+                new double[validItems.size()];
+
+        int totalUnits = 0;
+        double totalAmount = 0;
+        double totalSaving = 0;
+
+        for (int index = 0;
+             index < validItems.size();
+             index++) {
+
+            SaleItem item =
+                    validItems.get(index);
+
+            productNames.add(
+                    getSafeSaleItemName(item)
+            );
+
+            quantities.add(
+                    item.getQuantity()
+            );
+
+            subtotals[index] =
+                    item.getSubtotal();
+
+            totalUnits +=
+                    item.getQuantity();
+
+            totalAmount +=
+                    item.getSubtotal();
+
+            totalSaving +=
+                    item.getCustomerSaving();
+        }
+
+        hideSearchKeyboard();
+
+        SaleConfirmationBottomSheet sheet =
+                SaleConfirmationBottomSheet
+                        .newInstance(
+                                productNames,
+                                quantities,
+                                subtotals,
+                                totalUnits,
+                                totalAmount,
+                                totalSaving
+                        );
+
+        sheet.show(
+                getParentFragmentManager(),
+                SaleConfirmationBottomSheet.TAG
+        );
+    }
+
+    private List<SaleItem> getValidSaleItems() {
+        List<SaleItem> validItems =
                 new ArrayList<>();
 
         for (SaleItem item
@@ -637,27 +809,36 @@ public class SalesFragment extends Fragment {
 
             if (item == null
                     || item.getQuantity() <= 0) {
-
                 continue;
             }
 
-            /*
-             * Make sure the sale snapshot is current before
-             * sending it to the repository.
-             */
             item.recalculate();
-
-            saleItems.add(item);
+            validItems.add(item);
         }
 
-        if (saleItems.isEmpty()) {
+        return validItems;
+    }
 
-            showMessage(
+    private void completeSale() {
+        if (saleInProgress) {
+            return;
+        }
+
+        List<SaleItem> saleItems =
+                getValidSaleItems();
+
+        if (saleItems.isEmpty()) {
+            showSaleError(
                     "Select at least one valid product."
             );
 
             return;
         }
+
+        final double completedTotal =
+                calculateSaleTotal(
+                        saleItems
+                );
 
         setSaleInProgress(true);
 
@@ -670,21 +851,35 @@ public class SalesFragment extends Fragment {
                     public void onSuccess(
                             String saleId
                     ) {
-
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
                         setSaleInProgress(false);
-
                         clearSale();
 
-                        showMessage(
-                                "Sale completed successfully."
-                        );
+                        SaleConfirmationBottomSheet sheet =
+                                findSaleConfirmationSheet();
+
+                        if (sheet != null) {
+                            sheet.showSuccess(
+                                    completedTotal,
+                                    saleId
+                            );
+
+                        } else {
+                            showMessage(
+                                    formatMoney(
+                                            completedTotal
+                                    )
+                                            + " was recorded successfully."
+                            );
+                        }
 
                         /*
-                         * Reload to display the reduced Firebase stock.
+                         * Reload the products immediately so the reduced
+                         * inventory quantities appear on the Sales page.
                          */
                         loadProducts();
                     }
@@ -693,24 +888,83 @@ public class SalesFragment extends Fragment {
                     public void onFailure(
                             String error
                     ) {
-
-                        if (!isAdded()) {
+                        if (!isAdded()
+                                || getView() == null) {
                             return;
                         }
 
                         setSaleInProgress(false);
-                        showMessage(error);
+                        showSaleError(error);
                     }
                 }
         );
     }
 
-    private void clearSale() {
+    private double calculateSaleTotal(
+            List<SaleItem> saleItems
+    ) {
+        double total = 0;
 
+        if (saleItems == null) {
+            return total;
+        }
+
+        for (SaleItem item : saleItems) {
+            if (item == null) {
+                continue;
+            }
+
+            item.recalculate();
+
+            total +=
+                    item.getSubtotal();
+        }
+
+        return total;
+    }
+
+    @Nullable
+    private SaleConfirmationBottomSheet
+    findSaleConfirmationSheet() {
+        Fragment fragment =
+                getParentFragmentManager()
+                        .findFragmentByTag(
+                                SaleConfirmationBottomSheet.TAG
+                        );
+
+        if (fragment
+                instanceof SaleConfirmationBottomSheet) {
+
+            return (SaleConfirmationBottomSheet) fragment;
+        }
+
+        return null;
+    }
+
+    private void showSaleError(
+            String error
+    ) {
+        String message =
+                error == null
+                        || error.trim().isEmpty()
+                        ? "The sale could not be completed."
+                        : error.trim();
+
+        SaleConfirmationBottomSheet sheet =
+                findSaleConfirmationSheet();
+
+        if (sheet != null) {
+            sheet.showError(message);
+
+        } else {
+            showMessage(message);
+        }
+    }
+
+    private void clearSale() {
         cartItems.clear();
 
         if (salesProductAdapter != null) {
-
             salesProductAdapter
                     .clearQuantities();
         }
@@ -718,13 +972,17 @@ public class SalesFragment extends Fragment {
         updateSaleSummary();
     }
 
-    /**
-     * Calculates the live, offer-aware sale summary.
-     */
     private void updateSaleSummary() {
+        if (textSelectedItems == null
+                || textSaleTotal == null
+                || textCustomerSaving == null
+                || buttonClearSale == null
+                || buttonCompleteSale == null) {
+
+            return;
+        }
 
         int totalQuantity = 0;
-
         double totalAmount = 0;
         double totalSaving = 0;
 
@@ -733,7 +991,6 @@ public class SalesFragment extends Fragment {
 
             if (item == null
                     || item.getQuantity() <= 0) {
-
                 continue;
             }
 
@@ -762,7 +1019,6 @@ public class SalesFragment extends Fragment {
         );
 
         if (totalSaving > 0) {
-
             textCustomerSaving.setVisibility(
                     View.VISIBLE
             );
@@ -771,19 +1027,18 @@ public class SalesFragment extends Fragment {
                     String.format(
                             Locale.getDefault(),
                             "Customer saves %s",
-                            formatMoney(totalSaving)
+                            formatMoney(
+                                    totalSaving
+                            )
                     )
             );
 
         } else {
-
             textCustomerSaving.setVisibility(
                     View.GONE
             );
 
-            textCustomerSaving.setText(
-                    ""
-            );
+            textCustomerSaving.setText("");
         }
 
         boolean hasItems =
@@ -798,15 +1053,11 @@ public class SalesFragment extends Fragment {
         );
     }
 
-    /**
-     * Refreshes cart entries using the latest stock and
-     * pricing information loaded from Firebase.
-     */
     private void synchroniseCartWithProducts(
             List<Product> products
     ) {
-
-        if (products == null) {
+        if (products == null
+                || salesProductAdapter == null) {
             return;
         }
 
@@ -814,7 +1065,6 @@ public class SalesFragment extends Fragment {
                 new LinkedHashMap<>();
 
         for (Product product : products) {
-
             if (product != null
                     && product.getId() != null
                     && !product.getId()
@@ -832,6 +1082,8 @@ public class SalesFragment extends Fragment {
                 new ArrayList<>(
                         cartItems.keySet()
                 );
+
+        boolean selectionAdjusted = false;
 
         for (String productId
                 : selectedProductIds) {
@@ -859,6 +1111,7 @@ public class SalesFragment extends Fragment {
                         0
                 );
 
+                selectionAdjusted = true;
                 continue;
             }
 
@@ -869,7 +1122,6 @@ public class SalesFragment extends Fragment {
                     );
 
             if (correctedQuantity <= 0) {
-
                 cartItems.remove(
                         productId
                 );
@@ -879,40 +1131,65 @@ public class SalesFragment extends Fragment {
                         0
                 );
 
+                selectionAdjusted = true;
                 continue;
             }
 
-            /*
-             * Recreate the item even when the quantity is unchanged.
-             * This updates selling price, cost price and offer details
-             * if they were edited in Firebase.
-             */
-            SaleItem refreshedItem =
-                    SaleItem.fromProduct(
-                            latestProduct,
-                            correctedQuantity
-                    );
+            if (correctedQuantity
+                    != currentItem.getQuantity()) {
+                selectionAdjusted = true;
+            }
 
-            cartItems.put(
-                    productId,
-                    refreshedItem
-            );
+            try {
+                SaleItem refreshedItem =
+                        SaleItem.fromProduct(
+                                latestProduct,
+                                correctedQuantity
+                        );
 
-            salesProductAdapter.setQuantity(
-                    productId,
-                    correctedQuantity
-            );
+                cartItems.put(
+                        productId,
+                        refreshedItem
+                );
+
+                salesProductAdapter.setQuantity(
+                        productId,
+                        correctedQuantity
+                );
+
+            } catch (IllegalArgumentException exception) {
+                cartItems.remove(
+                        productId
+                );
+
+                salesProductAdapter.setQuantity(
+                        productId,
+                        0
+                );
+
+                selectionAdjusted = true;
+            }
         }
 
         updateSaleSummary();
+
+        if (selectionAdjusted
+                && !cartItems.isEmpty()) {
+
+            showMessage(
+                    "Some selected quantities were adjusted to match the latest inventory."
+            );
+        }
     }
 
     private void setSaleInProgress(
             boolean inProgress
     ) {
+        saleInProgress = inProgress;
 
-        saleInProgress =
-                inProgress;
+        if (buttonCompleteSale == null) {
+            return;
+        }
 
         buttonCompleteSale.setText(
                 inProgress
@@ -922,13 +1199,17 @@ public class SalesFragment extends Fragment {
                 )
         );
 
-        searchProducts.setEnabled(
-                !inProgress
-        );
+        if (searchProducts != null) {
+            searchProducts.setEnabled(
+                    !inProgress
+            );
+        }
 
-        recyclerSalesProducts.setEnabled(
-                !inProgress
-        );
+        if (recyclerSalesProducts != null) {
+            recyclerSalesProducts.setEnabled(
+                    !inProgress
+            );
+        }
 
         updateSaleSummary();
     }
@@ -936,6 +1217,11 @@ public class SalesFragment extends Fragment {
     private void showLoading(
             boolean loading
     ) {
+        if (progressProducts == null
+                || recyclerSalesProducts == null
+                || searchProducts == null) {
+            return;
+        }
 
         progressProducts.setVisibility(
                 loading
@@ -953,7 +1239,8 @@ public class SalesFragment extends Fragment {
                 !loading && !saleInProgress
         );
 
-        if (loading) {
+        if (loading
+                && textEmptyProducts != null) {
 
             textEmptyProducts.setVisibility(
                     View.GONE
@@ -961,12 +1248,9 @@ public class SalesFragment extends Fragment {
         }
     }
 
-    private String formatMoney(
-            double amount
-    ) {
-
+    private String formatMoney(double amount) {
         return String.format(
-                Locale.getDefault(),
+                Locale.US,
                 "KSh %,.2f",
                 amount
         );
@@ -975,7 +1259,6 @@ public class SalesFragment extends Fragment {
     private String getSafeProductName(
             Product product
     ) {
-
         if (product == null
                 || product.getName() == null
                 || product.getName()
@@ -985,28 +1268,106 @@ public class SalesFragment extends Fragment {
             return "Product";
         }
 
-        return product.getName();
+        return product.getName().trim();
     }
 
+    private String getSafeSaleItemName(
+            SaleItem item
+    ) {
+        if (item == null
+                || item.getProductName() == null
+                || item.getProductName()
+                .trim()
+                .isEmpty()) {
+
+            return "Product";
+        }
+
+        return item.getProductName().trim();
+    }
+
+    /*
+     * Professional in-screen feedback for non-sale messages.
+     * Sale success and failure remain inside the bottom sheet.
+     */
     private void showMessage(
             String message
     ) {
-
-        if (!isAdded()) {
+        if (!isAdded()
+                || salesRoot == null) {
             return;
         }
 
-        if (message == null
-                || message.trim().isEmpty()) {
+        String safeMessage =
+                message == null
+                        || message.trim().isEmpty()
+                        ? "Something went wrong."
+                        : message.trim();
 
-            message =
-                    "Something went wrong.";
+        Snackbar snackbar =
+                Snackbar.make(
+                        salesRoot,
+                        safeMessage,
+                        Snackbar.LENGTH_LONG
+                );
+
+        if (cardSaleSummary != null
+                && cardSaleSummary.getVisibility()
+                == View.VISIBLE) {
+
+            snackbar.setAnchorView(
+                    cardSaleSummary
+            );
         }
 
-        Toast.makeText(
-                requireContext(),
-                message,
-                Toast.LENGTH_LONG
-        ).show();
+        snackbar.show();
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (getActivity()
+                instanceof MainActivity) {
+
+            MainActivity mainActivity =
+                    (MainActivity) getActivity();
+
+            mainActivity.setBottomNavigationVisible(
+                    true
+            );
+        }
+
+        if (salesRoot != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(
+                    salesRoot,
+                    null
+            );
+        }
+
+        if (searchProducts != null) {
+            searchProducts.setOnQueryTextListener(
+                    null
+            );
+        }
+
+        if (recyclerSalesProducts != null) {
+            recyclerSalesProducts.setAdapter(
+                    null
+            );
+        }
+
+        super.onDestroyView();
+
+        salesRoot = null;
+        cardSaleSummary = null;
+        recyclerSalesProducts = null;
+        searchProducts = null;
+        progressProducts = null;
+        textEmptyProducts = null;
+        textSelectedItems = null;
+        textSaleTotal = null;
+        textCustomerSaving = null;
+        buttonClearSale = null;
+        buttonCompleteSale = null;
+        salesProductAdapter = null;
     }
 }

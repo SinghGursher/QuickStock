@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Product Details"
-            android:textColor="@color/primaryGreen"
+            android:textColor="?attr/colorSurface"
             android:textSize="28sp"
             android:textStyle="bold" />
 
@@ -386,7 +386,8 @@
             android:text="Save Product"
             android:textAllCaps="false"
             android:textSize="16sp"
-            app:backgroundTint="@color/primaryGreen"
+            app:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"
             app:cornerRadius="14dp" />
 
     </LinearLayout>
