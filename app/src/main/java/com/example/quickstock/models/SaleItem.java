@@ -1,5 +1,8 @@
 package com.example.quickstock.models;
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+@IgnoreExtraProperties
 public class SaleItem {
 
     private String productId;
@@ -277,6 +280,7 @@ public class SaleItem {
     /*
      * Compatibility method for older adapter code.
      */
+    @Exclude
     public double getUnitPrice() {
         return sellingPrice;
     }

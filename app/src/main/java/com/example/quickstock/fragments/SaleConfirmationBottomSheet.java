@@ -676,6 +676,100 @@ public class SaleConfirmationBottomSheet
                 message.toString()
         );
     }
+    public void showQueued(
+            double completedTotal,
+            String saleId
+    ) {
+
+        if (!isAdded()
+                || getView() == null) {
+
+            return;
+        }
+
+        processing = false;
+
+        setCancelable(false);
+
+        reviewContent.setVisibility(
+                View.GONE
+        );
+
+        confirmationActions.setVisibility(
+                View.GONE
+        );
+
+        progressConfirmSale.setVisibility(
+                View.GONE
+        );
+
+        resultContent.setVisibility(
+                View.VISIBLE
+        );
+
+        buttonResultDone.setVisibility(
+                View.VISIBLE
+        );
+
+        /*
+         * Circular arrow represents pending synchronization.
+         */
+        textResultSymbol.setText("\u21BB");
+
+        textResultSymbol.setTextColor(
+                ContextCompat.getColor(
+                        requireContext(),
+                        R.color.quickStockPurple
+                )
+        );
+
+        textResultTitle.setText(
+                "Sale saved offline"
+        );
+
+        StringBuilder message =
+                new StringBuilder();
+
+        message.append(
+                formatMoney(completedTotal)
+        );
+
+        message.append(
+                " was saved securely on this device."
+        );
+
+        message.append(
+                "\n\nInventory quantities have been updated locally."
+        );
+
+        message.append(
+                "\n\nThe sale will sync automatically when the internet connection is restored."
+        );
+
+        if (saleId != null
+                && !saleId.trim().isEmpty()) {
+
+            String cleanId =
+                    saleId.trim();
+
+            String reference =
+                    cleanId.length() > 8
+                            ? cleanId.substring(
+                            cleanId.length() - 8
+                    )
+                            : cleanId;
+
+            message.append(
+                    "\n\nReference: "
+            );
+
+            message.append(reference);
+        }
+
+        textResultMessage.setText(
+                message.toString()
+        );
+    }
 
     public void showError(
             String error

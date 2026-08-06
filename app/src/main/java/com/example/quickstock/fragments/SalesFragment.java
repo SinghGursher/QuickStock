@@ -878,8 +878,44 @@ public class SalesFragment extends Fragment {
                         }
 
                         /*
-                         * Reload the products immediately so the reduced
-                         * inventory quantities appear on the Sales page.
+                         * Display the reduced stock quantities.
+                         */
+                        loadProducts();
+                    }
+
+                    @Override
+                    public void onQueuedForSync(
+                            String saleId
+                    ) {
+                        if (!isAdded()
+                                || getView() == null) {
+                            return;
+                        }
+
+                        setSaleInProgress(false);
+                        clearSale();
+
+                        SaleConfirmationBottomSheet sheet =
+                                findSaleConfirmationSheet();
+
+                        if (sheet != null) {
+                            sheet.showQueued(
+                                    completedTotal,
+                                    saleId
+                            );
+
+                        } else {
+                            showMessage(
+                                    formatMoney(
+                                            completedTotal
+                                    )
+                                            + " was saved offline and will sync automatically."
+                            );
+                        }
+
+                        /*
+                         * The atomic write has already reduced
+                         * stock in Firebase's local cache.
                          */
                         loadProducts();
                     }

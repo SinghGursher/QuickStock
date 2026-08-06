@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.example.quickstock.firebase.FirebaseClient;
 import com.example.quickstock.models.Product;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -20,7 +21,17 @@ public class ProductRepository {
             "ProductRepository";
 
     public interface OnCompleteListener {
+
+        /*
+         * Called after Firebase confirms an online write.
+         */
         void onSuccess();
+
+        /*
+         * Called after Firebase accepts an offline write
+         * into its persistent local synchronization queue.
+         */
+        void onQueuedForSync();
 
         void onFailure(String error);
     }
@@ -84,39 +95,43 @@ public class ProductRepository {
 
         product.setId(productId);
 
-        productsReference
-                .child(productId)
-                .setValue(product)
-                .addOnSuccessListener(unused -> {
-                    Log.d(
-                            TAG,
-                            "Product added successfully. ID: "
-                                    + productId
-                    );
+        boolean queuedOffline =
+                FirebaseClient.isDefinitelyOffline();
 
-                    listener.onSuccess();
-                })
-                .addOnFailureListener(exception -> {
-                    Log.e(
-                            TAG,
-                            "Failed to add product.",
-                            exception
-                    );
+        try {
+            Task<Void> writeTask =
+                    productsReference
+                            .child(productId)
+                            .setValue(product);
 
-                    listener.onFailure(
-                            getErrorMessage(
-                                    exception.getMessage(),
-                                    "Failed to add product."
-                            )
-                    );
-                });
+            handleWrite(
+                    writeTask,
+                    queuedOffline,
+                    "Add product",
+                    "Product added successfully. ID: "
+                            + productId,
+                    "Failed to add product.",
+                    listener
+            );
+
+        } catch (RuntimeException exception) {
+            Log.e(
+                    TAG,
+                    "Failed to start product creation.",
+                    exception
+            );
+
+            listener.onFailure(
+                    getErrorMessage(
+                            exception.getMessage(),
+                            "Failed to add product."
+                    )
+            );
+        }
     }
 
     /*
      * READ ALL PRODUCTS
-     *
-     * This uses a one-time read to prevent duplicate
-     * active listeners when a Fragment resumes.
      */
     public void getProducts(
             OnProductsLoadedListener listener
@@ -168,10 +183,12 @@ public class ProductRepository {
 
                                     if (firebaseKey == null
                                             || firebaseKey.trim().isEmpty()) {
+
                                         Log.w(
                                                 TAG,
                                                 "Skipped product with missing Firebase key."
                                         );
+
                                         continue;
                                     }
 
@@ -224,9 +241,11 @@ public class ProductRepository {
 
         if (productId == null
                 || productId.trim().isEmpty()) {
+
             listener.onFailure(
                     "Invalid product ID."
             );
+
             return;
         }
 
@@ -262,6 +281,7 @@ public class ProductRepository {
                                     listener.onFailure(
                                             "Product was not found."
                                     );
+
                                     return;
                                 }
 
@@ -282,9 +302,11 @@ public class ProductRepository {
 
                                 if (firebaseKey == null
                                         || firebaseKey.trim().isEmpty()) {
+
                                     listener.onFailure(
                                             "Product Firebase key is missing."
                                     );
+
                                     return;
                                 }
 
@@ -339,9 +361,11 @@ public class ProductRepository {
 
         if (productId == null
                 || productId.trim().isEmpty()) {
+
             listener.onFailure(
                     "Product ID is missing."
             );
+
             return;
         }
 
@@ -357,32 +381,39 @@ public class ProductRepository {
 
         product.setId(cleanProductId);
 
-        productsReference
-                .child(cleanProductId)
-                .setValue(product)
-                .addOnSuccessListener(unused -> {
-                    Log.d(
-                            TAG,
-                            "Product updated successfully. ID: "
-                                    + cleanProductId
-                    );
+        boolean queuedOffline =
+                FirebaseClient.isDefinitelyOffline();
 
-                    listener.onSuccess();
-                })
-                .addOnFailureListener(exception -> {
-                    Log.e(
-                            TAG,
-                            "Failed to update product.",
-                            exception
-                    );
+        try {
+            Task<Void> writeTask =
+                    productsReference
+                            .child(cleanProductId)
+                            .setValue(product);
 
-                    listener.onFailure(
-                            getErrorMessage(
-                                    exception.getMessage(),
-                                    "Failed to update product."
-                            )
-                    );
-                });
+            handleWrite(
+                    writeTask,
+                    queuedOffline,
+                    "Update product",
+                    "Product updated successfully. ID: "
+                            + cleanProductId,
+                    "Failed to update product.",
+                    listener
+            );
+
+        } catch (RuntimeException exception) {
+            Log.e(
+                    TAG,
+                    "Failed to start product update.",
+                    exception
+            );
+
+            listener.onFailure(
+                    getErrorMessage(
+                            exception.getMessage(),
+                            "Failed to update product."
+                    )
+            );
+        }
     }
 
     /*
@@ -398,9 +429,11 @@ public class ProductRepository {
 
         if (productId == null
                 || productId.trim().isEmpty()) {
+
             listener.onFailure(
                     "Invalid product ID."
             );
+
             return;
         }
 
@@ -414,32 +447,112 @@ public class ProductRepository {
         String cleanProductId =
                 productId.trim();
 
-        productsReference
-                .child(cleanProductId)
-                .removeValue()
-                .addOnSuccessListener(unused -> {
-                    Log.d(
-                            TAG,
-                            "Product deleted successfully. ID: "
-                                    + cleanProductId
+        boolean queuedOffline =
+                FirebaseClient.isDefinitelyOffline();
+
+        try {
+            Task<Void> writeTask =
+                    productsReference
+                            .child(cleanProductId)
+                            .removeValue();
+
+            handleWrite(
+                    writeTask,
+                    queuedOffline,
+                    "Delete product",
+                    "Product deleted successfully. ID: "
+                            + cleanProductId,
+                    "Failed to delete product.",
+                    listener
+            );
+
+        } catch (RuntimeException exception) {
+            Log.e(
+                    TAG,
+                    "Failed to start product deletion.",
+                    exception
+            );
+
+            listener.onFailure(
+                    getErrorMessage(
+                            exception.getMessage(),
+                            "Failed to delete product."
+                    )
+            );
+        }
+    }
+
+    private void handleWrite(
+            Task<Void> writeTask,
+            boolean queuedOffline,
+            String operationName,
+            String successLog,
+            String defaultError,
+            OnCompleteListener listener
+    ) {
+        if (queuedOffline) {
+            /*
+             * setValue/removeValue has already applied the
+             * change to Firebase's local persistent cache.
+             *
+             * The screen can therefore finish immediately.
+             */
+            writeTask
+                    .addOnSuccessListener(
+                            unused ->
+                                    Log.d(
+                                            TAG,
+                                            operationName
+                                                    + " synchronized successfully."
+                                    )
+                    )
+                    .addOnFailureListener(
+                            exception ->
+                                    Log.e(
+                                            TAG,
+                                            operationName
+                                                    + " was rejected while synchronizing.",
+                                            exception
+                                    )
                     );
 
-                    listener.onSuccess();
-                })
-                .addOnFailureListener(exception -> {
-                    Log.e(
-                            TAG,
-                            "Failed to delete product.",
-                            exception
-                    );
+            Log.d(
+                    TAG,
+                    operationName
+                            + " saved locally and queued for synchronization."
+            );
 
-                    listener.onFailure(
-                            getErrorMessage(
-                                    exception.getMessage(),
-                                    "Failed to delete product."
-                            )
-                    );
-                });
+            listener.onQueuedForSync();
+            return;
+        }
+
+        writeTask
+                .addOnSuccessListener(
+                        unused -> {
+                            Log.d(
+                                    TAG,
+                                    successLog
+                            );
+
+                            listener.onSuccess();
+                        }
+                )
+                .addOnFailureListener(
+                        exception -> {
+                            Log.e(
+                                    TAG,
+                                    operationName + " failed.",
+                                    exception
+                            );
+
+                            listener.onFailure(
+                                    getErrorMessage(
+                                            exception.getMessage(),
+                                            defaultError
+                                    )
+                            );
+                        }
+                );
     }
 
     private DatabaseReference getProductsReference(
@@ -452,6 +565,7 @@ public class ProductRepository {
             listener.onFailure(
                     "User is not logged in."
             );
+
             return null;
         }
 
@@ -464,9 +578,10 @@ public class ProductRepository {
     ) {
         if (firebaseMessage == null
                 || firebaseMessage.trim().isEmpty()) {
+
             return defaultMessage;
         }
 
-        return firebaseMessage;
+        return firebaseMessage.trim();
     }
 }

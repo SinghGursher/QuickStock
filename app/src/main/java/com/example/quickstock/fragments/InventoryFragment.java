@@ -233,9 +233,23 @@ public class InventoryFragment extends Fragment {
             return;
         }
 
-        loadProducts(
-                "Product added successfully."
-        );
+        Intent resultData =
+                result.getData();
+
+        boolean pendingSync =
+                resultData != null
+                        && resultData.getBooleanExtra(
+                        AddProductActivity
+                                .EXTRA_PENDING_SYNC,
+                        false
+                );
+
+        String message =
+                pendingSync
+                        ? "Product saved offline. It will sync automatically."
+                        : "Product added successfully.";
+
+        loadProducts(message);
     }
 
     private void handleProductDetailsResult(
@@ -257,30 +271,56 @@ public class InventoryFragment extends Fragment {
                         .EXTRA_CHANGE_TYPE
                 );
 
-        String successMessage;
+        boolean pendingSync =
+                resultData != null
+                        && resultData.getBooleanExtra(
+                        ProductDetailsActivity
+                                .EXTRA_PENDING_SYNC,
+                        false
+                );
 
-        if (ProductDetailsActivity
+        String message;
+
+        if (pendingSync) {
+            if (ProductDetailsActivity
+                    .CHANGE_DELETED
+                    .equals(changeType)) {
+
+                message =
+                        "Product deleted offline. It will sync automatically.";
+
+            } else if (ProductDetailsActivity
+                    .CHANGE_UPDATED
+                    .equals(changeType)) {
+
+                message =
+                        "Product updated offline. It will sync automatically.";
+
+            } else {
+                message =
+                        "Inventory changed offline. It will sync automatically.";
+            }
+
+        } else if (ProductDetailsActivity
                 .CHANGE_DELETED
                 .equals(changeType)) {
 
-            successMessage =
+            message =
                     "Product deleted successfully.";
 
         } else if (ProductDetailsActivity
                 .CHANGE_UPDATED
                 .equals(changeType)) {
 
-            successMessage =
+            message =
                     "Product updated successfully.";
 
         } else {
-            successMessage =
+            message =
                     "Inventory updated successfully.";
         }
 
-        loadProducts(
-                successMessage
-        );
+        loadProducts(message);
     }
 
     private void loadProducts() {
