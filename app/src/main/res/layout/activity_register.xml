@@ -1,137 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:clipToPadding="false"
     android:fillViewport="true"
-    android:background="@android:color/white">
+    android:fitsSystemWindows="true"
+    tools:context=".activities.RegisterActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:paddingStart="24dp"
+        android:paddingTop="48dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="32dp">
+
+        <!-- Page heading -->
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:gravity="center"
             android:text="Create Account"
+            android:textColor="@color/text_primary"
             android:textSize="30sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black" />
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"
             android:text="Register your QuickStock business account"
-            android:textSize="15sp"
-            android:textColor="@android:color/darker_gray" />
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp" />
+
+
+        <!-- Owner name -->
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.QuickStock.TextInputLayout.Auth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Owner name">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editOwnerName"
+                style="@style/Widget.QuickStock.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPersonName"
-                android:maxLines="1" />
+                android:autofillHints="name"
+                android:imeOptions="actionNext"
+                android:inputType="textPersonName|textCapWords"
+                android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
+        <!-- Business name -->
+
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.QuickStock.TextInputLayout.Auth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:hint="Business name">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editBusinessName"
+                style="@style/Widget.QuickStock.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:imeOptions="actionNext"
                 android:inputType="textCapWords"
-                android:maxLines="1" />
+                android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
+        <!-- Email -->
+
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.QuickStock.TextInputLayout.Auth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:hint="Email address">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editRegisterEmail"
+                style="@style/Widget.QuickStock.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:autofillHints="emailAddress"
+                android:imeOptions="actionNext"
                 android:inputType="textEmailAddress"
-                android:maxLines="1" />
+                android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
+        <!-- Password -->
+
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.QuickStock.TextInputLayout.Auth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:hint="Password"
             app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editRegisterPassword"
+                style="@style/Widget.QuickStock.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:autofillHints="newPassword"
+                android:imeOptions="actionNext"
                 android:inputType="textPassword"
-                android:maxLines="1" />
+                android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
+        <!-- Confirm password -->
+
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.QuickStock.TextInputLayout.Auth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:hint="Confirm password"
             app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editConfirmPassword"
+                style="@style/Widget.QuickStock.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:autofillHints="newPassword"
+                android:imeOptions="actionDone"
                 android:inputType="textPassword"
-                android:maxLines="1" />
+                android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
+        <!-- Primary action -->
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonRegister"
+            style="@style/Widget.QuickStock.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="24dp"
             android:text="Create Account"
-            android:textAllCaps="false"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="16dp" />
 
-        <ProgressBar
+
+        <!-- Registration progress -->
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/registerProgressBar"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_marginTop="16dp"
-            android:visibility="gone" />
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/brand_primary"
+            app:indicatorSize="36dp"
+            app:trackThickness="4dp"
+            tools:visibility="visible" />
+
+
+        <!-- Return to Login -->
 
         <TextView
             android:id="@+id/textGoToLogin"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:paddingHorizontal="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:text="Already have an account? Log in"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/brand_primary"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
     </LinearLayout>

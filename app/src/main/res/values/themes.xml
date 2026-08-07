@@ -2,35 +2,218 @@
 
 <resources>
 
-    <style
-        name="Base.Theme.QuickStock"
-        parent="Theme.Material3.DayNight.NoActionBar">
+    <!--
+        All shared theme values live in this Foundation style.
+        The theme intentionally uses Material3 Light so device
+        dark-mode settings cannot unexpectedly change colours.
+    -->
 
-        <item name="colorPrimary">@color/primaryGreen</item>
-        <item name="colorSecondary">@color/primaryGreen</item>
+    <style
+        name="Base.Theme.QuickStock.Foundation"
+        parent="Theme.Material3.Light.NoActionBar">
+
+        <!-- Brand -->
+
+        <item name="colorPrimary">
+            @color/brand_primary
+        </item>
+
+        <item name="colorOnPrimary">
+            @color/on_primary
+        </item>
+
+        <item name="colorPrimaryContainer">
+            @color/brand_primary_container
+        </item>
+
+        <item name="colorOnPrimaryContainer">
+            @color/on_primary_container
+        </item>
+
+
+        <!-- Secondary -->
+
+        <item name="colorSecondary">
+            @color/brand_secondary
+        </item>
+
+        <item name="colorOnSecondary">
+            @color/on_secondary
+        </item>
+
+        <item name="colorSecondaryContainer">
+            @color/brand_secondary_container
+        </item>
+
+        <item name="colorOnSecondaryContainer">
+            @color/on_secondary_container
+        </item>
+
+
+        <!-- Warning / tertiary -->
+
+        <item name="colorTertiary">
+            @color/warning
+        </item>
+
+        <item name="colorOnTertiary">
+            @color/on_warning
+        </item>
+
+        <item name="colorTertiaryContainer">
+            @color/warning_container
+        </item>
+
+        <item name="colorOnTertiaryContainer">
+            @color/on_warning_container
+        </item>
+
+
+        <!-- Surfaces -->
 
         <item name="android:windowBackground">
-            @color/background
+            @color/app_background
         </item>
+
+        <item name="android:colorBackground">
+            @color/app_background
+        </item>
+
+        <item name="colorSurface">
+            @color/app_surface
+        </item>
+
+        <item name="colorOnSurface">
+            @color/text_primary
+        </item>
+
+        <item name="colorSurfaceVariant">
+            @color/surface_variant
+        </item>
+
+        <item name="colorOnSurfaceVariant">
+            @color/text_secondary
+        </item>
+
+        <item name="colorOutline">
+            @color/outline
+        </item>
+
+        <item name="colorOutlineVariant">
+            @color/outline_variant
+        </item>
+
+
+        <!-- Error -->
+
+        <item name="colorError">
+            @color/error
+        </item>
+
+        <item name="colorOnError">
+            @color/on_error
+        </item>
+
+        <item name="colorErrorContainer">
+            @color/error_container
+        </item>
+
+        <item name="colorOnErrorContainer">
+            @color/on_error_container
+        </item>
+
+
+        <!-- Standard Android text -->
+
+        <item name="android:textColorPrimary">
+            @color/text_primary
+        </item>
+
+        <item name="android:textColorSecondary">
+            @color/text_secondary
+        </item>
+
+        <item name="android:textColorHint">
+            @color/text_secondary
+        </item>
+
+
+        <!-- Standard controls -->
+
+        <item name="android:colorAccent">
+            @color/brand_primary
+        </item>
+
+        <item name="colorControlNormal">
+            @color/text_secondary
+        </item>
+
+        <item name="colorControlActivated">
+            @color/brand_primary
+        </item>
+
+        <item name="colorControlHighlight">
+            @color/brand_primary_container
+        </item>
+
+
+        <!-- Reusable component defaults -->
+
+        <item name="textInputStyle">
+            @style/Widget.QuickStock.TextInputLayout.Outlined
+        </item>
+
+        <item name="materialButtonStyle">
+            @style/Widget.QuickStock.Button.Primary
+        </item>
+
+        <item name="materialButtonOutlinedStyle">
+            @style/Widget.QuickStock.Button.Outlined
+        </item>
+
+        <item name="materialCardViewStyle">
+            @style/Widget.QuickStock.Card.Outlined
+        </item>
+
+        <item name="bottomNavigationStyle">
+            @style/Widget.QuickStock.BottomNavigation
+        </item>
+
+
+        <!-- Font -->
 
         <item name="android:fontFamily">sans</item>
+        <item name="fontFamily">sans</item>
+
+
+        <!-- System bars -->
 
         <item name="android:windowLightStatusBar">true</item>
+
         <item name="android:statusBarColor">
-            @color/splashBackground
+            @color/app_background
         </item>
 
+        <item name="android:windowLightNavigationBar">true</item>
+
         <item name="android:navigationBarColor">
-            @color/splashBackground
+            @color/app_surface
         </item>
 
         <item name="android:windowActionModeOverlay">true</item>
 
     </style>
 
+
+    <style
+        name="Base.Theme.QuickStock"
+        parent="Base.Theme.QuickStock.Foundation" />
+
+
     <style
         name="Theme.QuickStock"
         parent="Base.Theme.QuickStock" />
+
 
     <style
         name="Theme.QuickStock.Starting"

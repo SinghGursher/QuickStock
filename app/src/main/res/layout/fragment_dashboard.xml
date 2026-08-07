@@ -6,8 +6,11 @@
     android:id="@+id/dashboardRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
-    android:fillViewport="true">
+    android:background="@color/app_background"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="never"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,28 +21,21 @@
         android:paddingEnd="16dp"
         android:paddingBottom="32dp">
 
-        <!-- Greeting -->
-
-        <TextView
-            android:id="@+id/txtGreeting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Good Morning &#128075;"
-            android:textColor="#757575"
-            android:textSize="16sp" />
+        <!-- Dashboard heading -->
 
         <TextView
             android:id="@+id/txtName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="2dp"
             android:layout_marginBottom="24dp"
-            android:text="Welcome Back"
-            android:textColor="@color/primaryGreen"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+            android:text="QuickStock dashboard"
+            android:textAppearance="@style/TextAppearance.QuickStock.ScreenTitle"
+            android:textColor="@color/brand_primary" />
 
-        <!-- Overview heading -->
+
+        <!-- Overview -->
 
         <TextView
             android:id="@+id/textOverviewTitle"
@@ -47,12 +43,12 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginBottom="10dp"
-            android:text="Today's Overview"
-            android:textColor="#212121"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:text="Daily overview"
+            android:textColor="@color/brand_primary"
+            android:textAppearance="@style/TextAppearance.QuickStock.SectionTitle" />
 
-        <!-- Dashboard metric cards -->
+
+        <!-- Dashboard metrics -->
 
         <GridLayout
             android:id="@+id/gridDashboardMetrics"
@@ -66,37 +62,47 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTopProfitProduct"
+                style="@style/Widget.QuickStock.Card"
                 android:layout_width="0dp"
-                android:layout_height="170dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
+                android:layout_gravity="fill"
                 android:layout_margin="6dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E8E8E8"
-                app:strokeWidth="1dp">
+                android:minHeight="184dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="14dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Material3.CardView.Filled"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardBackgroundColor="@color/brand_primary_container"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Top profit product"
+                            android:src="@drawable/ic_dashboard_top_product" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="&#11088;"
-                        android:textSize="30sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:text="Top Profit Product"
-                        android:textColor="#424242"
-                        android:textSize="14sp"
+                        android:text="Top profit product"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -108,18 +114,20 @@
                         android:gravity="center"
                         android:maxLines="2"
                         android:text="No sales today"
-                        android:textColor="#212121"
+                        android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/txtTopProductProfit"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
+                        android:ellipsize="end"
                         android:gravity="center"
+                        android:maxLines="1"
                         android:text="KSh 0.00 profit"
-                        android:textColor="@color/primaryGreen"
+                        android:textColor="@color/profit_positive"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -127,41 +135,52 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+
             <!-- Today's sales -->
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTodaySales"
+                style="@style/Widget.QuickStock.Card"
                 android:layout_width="0dp"
-                android:layout_height="170dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
+                android:layout_gravity="fill"
                 android:layout_margin="6dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E8E8E8"
-                app:strokeWidth="1dp">
+                android:minHeight="184dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="14dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Material3.CardView.Filled"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardBackgroundColor="@color/brand_primary_container"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Today's sales"
+                            android:src="@drawable/ic_dashboard_sales" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="&#128176;"
-                        android:textSize="30sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:text="Today's Sales"
-                        android:textColor="#424242"
-                        android:textSize="14sp"
+                        android:text="Today's sales"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -173,116 +192,141 @@
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="KSh 0.00"
-                        android:textColor="#212121"
+                        android:textColor="@color/brand_primary"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
+                        android:gravity="center"
                         android:text="Revenue today"
-                        android:textColor="#757575"
+                        android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
+
 
             <!-- Low stock -->
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardLowStock"
+                style="@style/Widget.QuickStock.Card"
                 android:layout_width="0dp"
-                android:layout_height="170dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
+                android:layout_gravity="fill"
                 android:layout_margin="6dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E8E8E8"
-                app:strokeWidth="1dp">
+                android:minHeight="184dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="14dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Material3.CardView.Filled"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardBackgroundColor="@color/error_container"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Low stock warning"
+                            android:src="@drawable/ic_dashboard_low_stock" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="&#9888;&#65039;"
-                        android:textSize="30sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:text="Low Stock"
-                        android:textColor="#424242"
-                        android:textSize="14sp"
+                        android:text="Low stock"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/txtLowStock"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:gravity="center"
                         android:text="0"
-                        android:textColor="#D32F2F"
+                        android:textColor="@color/stock_low"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="items need attention"
-                        android:textColor="#757575"
+                        android:gravity="center"
+                        android:text="Items need attention"
+                        android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
+
             <!-- Gross profit -->
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardGrossProfit"
+                style="@style/Widget.QuickStock.Card"
                 android:layout_width="0dp"
-                android:layout_height="170dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
+                android:layout_gravity="fill"
                 android:layout_margin="6dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E8E8E8"
-                app:strokeWidth="1dp">
+                android:minHeight="184dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="14dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Material3.CardView.Filled"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardBackgroundColor="@color/success_container"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="Gross profit"
+                            android:src="@drawable/ic_dashboard_profit" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="&#128200;"
-                        android:textSize="30sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:text="Today's Gross Profit"
-                        android:textColor="#424242"
-                        android:textSize="14sp"
+                        android:text="Today's gross profit"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -294,18 +338,10 @@
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="KSh 0.00"
-                        android:textColor="@color/primaryGreen"
+                        android:textColor="@color/profit_positive"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center"
-                        android:text="Sales minus product cost"
-                        android:textColor="#757575"
-                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -313,7 +349,8 @@
 
         </GridLayout>
 
-        <!-- Quick Actions -->
+
+        <!-- Quick actions -->
 
         <TextView
             android:id="@+id/textQuickActions"
@@ -322,10 +359,10 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="12dp"
-            android:text="Quick Actions"
-            android:textColor="#212121"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:text="Quick actions"
+            android:textColor="@color/brand_primary"
+            android:textAppearance="@style/TextAppearance.QuickStock.SectionTitle" />
+
 
         <!-- First action row -->
 
@@ -338,37 +375,26 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonAddSale"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.QuickStock.Button.Outlined"
                 android:layout_width="0dp"
-                android:layout_height="58dp"
+                android:layout_height="56dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                android:text="New Sale"
-                android:textAllCaps="false"
-                android:textColor="?attr/colorSurface"
-                android:textSize="15sp"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="14dp"
-                app:strokeColor="?attr/colorSurface"
-                app:strokeWidth="1dp" />
+                android:text="New sale"
+                android:textSize="15sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonAddProduct"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.QuickStock.Button.Outlined"
                 android:layout_width="0dp"
-                android:layout_height="58dp"
+                android:layout_height="56dp"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:text="Add Product"
-                android:textAllCaps="false"
-                android:textColor="?attr/colorSurface"
-                android:textSize="15sp"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="14dp"
-                app:strokeColor="?attr/colorSurface"
-                app:strokeWidth="1dp" />
+                android:text="Add product"
+                android:textSize="15sp" />
 
         </LinearLayout>
+
 
         <!-- Second action row -->
 
@@ -382,35 +408,23 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonViewInventory"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.QuickStock.Button.Outlined"
                 android:layout_width="0dp"
-                android:layout_height="58dp"
+                android:layout_height="56dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:text="Inventory"
-                android:textAllCaps="false"
-                android:textColor="?attr/colorSurface"
-                android:textSize="15sp"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="14dp"
-                app:strokeColor="?attr/colorSurface"
-                app:strokeWidth="1dp" />
+                android:textSize="15sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSalesHistory"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.QuickStock.Button.Outlined"
                 android:layout_width="0dp"
-                android:layout_height="58dp"
+                android:layout_height="56dp"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:text="Sales History"
-                android:textAllCaps="false"
-                android:textColor="?attr/colorSurface"
-                android:textSize="15sp"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="14dp"
-                app:strokeColor="?attr/colorSurface"
-                app:strokeWidth="1dp" />
+                android:text="Sales history"
+                android:textSize="15sp" />
 
         </LinearLayout>
 

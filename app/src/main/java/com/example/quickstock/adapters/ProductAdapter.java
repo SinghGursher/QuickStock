@@ -7,6 +7,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
 
 import com.example.quickstock.R;
 import com.example.quickstock.interfaces.OnProductClickListener;
@@ -125,19 +126,65 @@ public class ProductAdapter
             txtCategory.setText(category);
             txtAmount.setText(amount);
 
-            txtStock.setText(
-                    String.format(
-                            Locale.getDefault(),
-                            "Stock: %d",
-                            product.getStock()
-                    )
-            );
+            displayStockStatus(product);
 
             txtPrice.setText(
                     String.format(
                             Locale.US,
                             "KSh %,.2f",
                             product.getSellingPrice()
+                    )
+            );
+        }
+
+        private void displayStockStatus(
+                Product product
+        ) {
+            int stock =
+                    Math.max(
+                            product.getStock(),
+                            0
+                    );
+
+            String statusText;
+            int statusColor;
+
+            if (stock == 0) {
+                statusText =
+                        "Out of stock";
+
+                statusColor =
+                        R.color.error;
+
+            } else if (product.isLowStock()) {
+                statusText =
+                        String.format(
+                                Locale.getDefault(),
+                                "Low stock: %d",
+                                stock
+                        );
+
+                statusColor =
+                        R.color.warning;
+
+            } else {
+                statusText =
+                        String.format(
+                                Locale.getDefault(),
+                                "In stock: %d",
+                                stock
+                        );
+
+                statusColor =
+                        R.color.success;
+            }
+
+            txtStock.setText(statusText);
+
+            txtStock.setTextColor(
+                    ContextCompat.getColor(
+                            itemView.getContext(),
+                            statusColor
                     )
             );
         }

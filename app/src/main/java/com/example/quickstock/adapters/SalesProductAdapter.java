@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
 
 import com.example.quickstock.R;
 import com.example.quickstock.models.Product;
@@ -455,13 +456,7 @@ public class SalesProductAdapter
 
             displayProductOffer(product);
 
-            textProductStock.setText(
-                    itemView.getContext()
-                            .getString(
-                                    R.string.stock_available,
-                                    product.getStock()
-                            )
-            );
+            displayStockStatus(product);
 
             int currentQuantity =
                     getQuantity(
@@ -507,6 +502,53 @@ public class SalesProductAdapter
 
             textQuantity.setEnabled(
                     hasStock
+            );
+        }
+
+        private void displayStockStatus(
+                Product product
+        ) {
+            int stock =
+                    Math.max(
+                            product.getStock(),
+                            0
+                    );
+
+            String statusText;
+            int statusColor;
+
+            if (stock == 0) {
+                statusText = "Out of stock";
+                statusColor = R.color.error;
+
+            } else if (product.isLowStock()) {
+                statusText =
+                        String.format(
+                                Locale.getDefault(),
+                                "Low stock: %d",
+                                stock
+                        );
+
+                statusColor = R.color.warning;
+
+            } else {
+                statusText =
+                        String.format(
+                                Locale.getDefault(),
+                                "In stock: %d",
+                                stock
+                        );
+
+                statusColor = R.color.success;
+            }
+
+            textProductStock.setText(statusText);
+
+            textProductStock.setTextColor(
+                    ContextCompat.getColor(
+                            itemView.getContext(),
+                            statusColor
+                    )
             );
         }
 
@@ -786,9 +828,7 @@ public class SalesProductAdapter
                 Product product,
                 int quantity
         ) {
-
             if (quantity <= 0) {
-
                 textSelectedSubtotal.setVisibility(
                         View.GONE
                 );
@@ -811,23 +851,21 @@ public class SalesProductAdapter
                     );
 
             if (saving > 0) {
+                textSelectedSubtotal.setText(
+                        String.format(
+                                Locale.US,
+                                "Subtotal: KSh %,.2f \u2022 Save KSh %,.2f",
+                                subtotal,
+                                saving
+                        )
+                );
 
+            } else {
                 textSelectedSubtotal.setText(
                         String.format(
                                 Locale.US,
                                 "Subtotal: KSh %,.2f",
                                 subtotal
-                        )
-                );
-
-            } else {
-
-                textSelectedSubtotal.setText(
-                        String.format(
-                                Locale.US,
-                                "Subtotal: KSh %,.2f • Save KSh %,.2f",
-                                subtotal,
-                                saving
                         )
                 );
             }
