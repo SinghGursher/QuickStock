@@ -18,34 +18,33 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final long SPLASH_DISPLAY_DURATION = 1100L;
+    private static final long SPLASH_DISPLAY_DURATION =
+            1100L;
 
     private final Handler splashHandler =
-            new Handler(Looper.getMainLooper());
+            new Handler(
+                    Looper.getMainLooper()
+            );
 
     private FirebaseAuth firebaseAuth;
-
     private View logoContainer;
 
-    private boolean navigationStarted = false;
+    private boolean navigationStarted;
 
     @Override
     protected void onCreate(
             @Nullable Bundle savedInstanceState
     ) {
-        /*
-         * Android requires installSplashScreen() before super.onCreate().
-         *
-         * The system splash is shown only during the application's
-         * initial launch. The custom layout is displayed immediately after.
-         */
         SplashScreen.installSplashScreen(this);
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_splash);
+        setContentView(
+                R.layout.activity_splash
+        );
 
-        firebaseAuth = FirebaseAuth.getInstance();
+        firebaseAuth =
+                FirebaseAuth.getInstance();
 
         initialiseViews();
         startSplashAnimation();
@@ -53,7 +52,10 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void initialiseViews() {
-        logoContainer = findViewById(R.id.logoContainer);
+        logoContainer =
+                findViewById(
+                        R.id.logoContainer
+                );
     }
 
     private void startSplashAnimation() {
@@ -63,7 +65,9 @@ public class SplashActivity extends AppCompatActivity {
                         R.anim.splash_logo_enter
                 );
 
-        logoContainer.startAnimation(entranceAnimation);
+        logoContainer.startAnimation(
+                entranceAnimation
+        );
     }
 
     private void scheduleNavigation() {
@@ -92,22 +96,38 @@ public class SplashActivity extends AppCompatActivity {
 
         Intent intent;
 
-        if (currentUser != null) {
-            intent = new Intent(
-                    SplashActivity.this,
-                    MainActivity.class
-            );
+        if (currentUser == null) {
+            intent =
+                    new Intent(
+                            SplashActivity.this,
+                            LoginActivity.class
+                    );
+
+        } else if (currentUser.isEmailVerified()) {
+            intent =
+                    new Intent(
+                            SplashActivity.this,
+                            MainActivity.class
+                    );
+
         } else {
-            intent = new Intent(
-                    SplashActivity.this,
-                    LoginActivity.class
+            intent =
+                    new Intent(
+                            SplashActivity.this,
+                            VerifyEmailActivity.class
+                    );
+
+            intent.putExtra(
+                    VerifyEmailActivity.EXTRA_EMAIL,
+                    currentUser.getEmail()
+            );
+
+            intent.putExtra(
+                    VerifyEmailActivity.EXTRA_EMAIL_SENT,
+                    false
             );
         }
 
-        /*
-         * Clear the splash and authentication activities
-         * from the task's back stack.
-         */
         intent.setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK
                         | Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -115,10 +135,6 @@ public class SplashActivity extends AppCompatActivity {
 
         startActivity(intent);
 
-        /*
-         * Prevent an additional Android activity transition because
-         * the splash root already performs its own fade-out.
-         */
         overridePendingTransition(0, 0);
 
         finish();
@@ -126,11 +142,9 @@ public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        /*
-         * Prevent the delayed task from trying to open another
-         * activity after SplashActivity has been destroyed.
-         */
-        splashHandler.removeCallbacksAndMessages(null);
+        splashHandler.removeCallbacksAndMessages(
+                null
+        );
 
         super.onDestroy();
     }

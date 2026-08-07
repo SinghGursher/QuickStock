@@ -21,6 +21,7 @@ import com.example.quickstock.fragments.SalesFragment;
 import com.example.quickstock.fragments.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,34 +35,23 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference connectionReference;
     private ValueEventListener connectionStateListener;
 
-    private boolean connectionListenerAttached = false;
+    private boolean connectionListenerAttached;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState
+    ) {
         super.onCreate(savedInstanceState);
 
-        if (FirebaseAuth
-                .getInstance()
-                .getCurrentUser() == null) {
-
-            Intent intent =
-                    new Intent(
-                            MainActivity.this,
-                            LoginActivity.class
-                    );
-
-            intent.setFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
-            );
-
-            startActivity(intent);
-            finish();
+        if (redirectIfAuthenticationIsInvalid()) {
             return;
         }
 
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+
+        setContentView(
+                R.layout.activity_main
+        );
 
         initialiseViews();
         configureSystemInsets();
@@ -73,6 +63,80 @@ public class MainActivity extends AppCompatActivity {
                     new DashboardFragment()
             );
         }
+    }
+
+    private boolean redirectIfAuthenticationIsInvalid() {
+        FirebaseUser currentUser =
+                FirebaseAuth
+                        .getInstance()
+                        .getCurrentUser();
+
+        if (currentUser == null) {
+            openAuthenticationScreen(
+                    LoginActivity.class,
+                    null
+            );
+
+            return true;
+        }
+
+        /*
+         * Use the locally cached verified state here rather than
+         * calling reload(). This allows previously verified users
+         * to continue opening QuickStock while offline.
+         */
+        if (!currentUser.isEmailVerified()) {
+            Intent verificationIntent =
+                    new Intent(
+                            MainActivity.this,
+                            VerifyEmailActivity.class
+                    );
+
+            verificationIntent.putExtra(
+                    VerifyEmailActivity.EXTRA_EMAIL,
+                    currentUser.getEmail()
+            );
+
+            verificationIntent.putExtra(
+                    VerifyEmailActivity.EXTRA_EMAIL_SENT,
+                    false
+            );
+
+            verificationIntent.setFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
+            );
+
+            startActivity(verificationIntent);
+            finish();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void openAuthenticationScreen(
+            Class<?> destination,
+            Bundle extras
+    ) {
+        Intent intent =
+                new Intent(
+                        MainActivity.this,
+                        destination
+                );
+
+        if (extras != null) {
+            intent.putExtras(extras);
+        }
+
+        intent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_CLEAR_TASK
+        );
+
+        startActivity(intent);
+        finish();
     }
 
     private void initialiseViews() {
@@ -89,12 +153,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void configureSystemInsets() {
         View root =
-                findViewById(R.id.main);
+                findViewById(
+                        R.id.main
+                );
 
         ViewCompat.setOnApplyWindowInsetsListener(
                 root,
                 (view, insets) -> {
-
                     Insets systemBars =
                             insets.getInsets(
                                     WindowInsetsCompat
@@ -116,11 +181,6 @@ public class MainActivity extends AppCompatActivity {
         ViewCompat.setOnApplyWindowInsetsListener(
                 bottomNavigation,
                 (view, windowInsets) -> {
-
-                    /*
-                     * The root layout already handles
-                     * all system-bar insets.
-                     */
                     view.setPadding(
                             0,
                             0,
@@ -140,24 +200,31 @@ public class MainActivity extends AppCompatActivity {
     private void configureBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(
                 item -> {
+                    Fragment selectedFragment =
+                            null;
 
-                    Fragment selectedFragment = null;
-
-                    int id = item.getItemId();
+                    int id =
+                            item.getItemId();
 
                     if (id == R.id.nav_dashboard) {
                         selectedFragment =
                                 new DashboardFragment();
 
-                    } else if (id == R.id.nav_inventory) {
+                    } else if (id
+                            == R.id.nav_inventory) {
+
                         selectedFragment =
                                 new InventoryFragment();
 
-                    } else if (id == R.id.nav_sales) {
+                    } else if (id
+                            == R.id.nav_sales) {
+
                         selectedFragment =
                                 new SalesFragment();
 
-                    } else if (id == R.id.nav_settings) {
+                    } else if (id
+                            == R.id.nav_settings) {
+
                         selectedFragment =
                                 new SettingsFragment();
                     }
@@ -206,9 +273,8 @@ public class MainActivity extends AppCompatActivity {
                             @NonNull DatabaseError error
                     ) {
                         /*
-                         * No message is displayed here because a
-                         * cancelled listener does not necessarily
-                         * mean that internet connectivity was lost.
+                         * A cancelled connectivity listener does
+                         * not necessarily mean the device is offline.
                          */
                     }
                 };
@@ -228,9 +294,10 @@ public class MainActivity extends AppCompatActivity {
         );
 
         if (!connected) {
-            textOfflineBanner.announceForAccessibility(
-                    "QuickStock is offline. Showing saved data."
-            );
+            textOfflineBanner
+                    .announceForAccessibility(
+                            "QuickStock is offline. Showing saved data."
+                    );
         }
     }
 
@@ -241,12 +308,14 @@ public class MainActivity extends AppCompatActivity {
         if (connectionReference == null
                 || connectionStateListener == null
                 || connectionListenerAttached) {
+
             return;
         }
 
-        connectionReference.addValueEventListener(
-                connectionStateListener
-        );
+        connectionReference
+                .addValueEventListener(
+                        connectionStateListener
+                );
 
         connectionListenerAttached = true;
     }
@@ -257,9 +326,10 @@ public class MainActivity extends AppCompatActivity {
                 && connectionStateListener != null
                 && connectionListenerAttached) {
 
-            connectionReference.removeEventListener(
-                    connectionStateListener
-            );
+            connectionReference
+                    .removeEventListener(
+                            connectionStateListener
+                    );
 
             connectionListenerAttached = false;
         }
