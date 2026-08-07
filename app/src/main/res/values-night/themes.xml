@@ -2,14 +2,19 @@
 
 <resources>
 
+    <!--
+        QuickStock currently provides one carefully controlled
+        light theme. Both device modes therefore inherit the same
+        shared foundation and render consistently.
+    -->
+
     <style
         name="Base.Theme.QuickStock"
-        parent="Theme.Material3.DayNight.NoActionBar">
+        parent="Base.Theme.QuickStock.Foundation" />
 
-        <item name="android:windowBackground">
-            @color/background
-        </item>
 
-    </style>
+    <style
+        name="Theme.QuickStock"
+        parent="Base.Theme.QuickStock" />
 
 </resources>

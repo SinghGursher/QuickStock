@@ -3,21 +3,24 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/salesRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="@color/app_background">
+
+    <!-- Page heading -->
 
     <TextView
         android:id="@+id/textSalesTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:text="@string/new_sale"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textStyle="bold"
+        android:textAppearance="@style/TextAppearance.QuickStock.ScreenTitle"
+        android:textColor="@color/brand_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -26,29 +29,27 @@
         android:id="@+id/textSalesSubtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="2dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="20dp"
         android:text="@string/tap_or_hold_quantity"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textSalesTitle" />
 
-    <!-- Permanently visible outlined search field -->
+    <!-- Product search -->
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardSalesSearch"
+        style="@style/Widget.QuickStock.Card.Outlined"
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:strokeColor="?attr/colorOutline"
-        app:strokeWidth="1dp"
+        app:cardCornerRadius="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textSalesSubtitle">
@@ -66,14 +67,18 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Product list -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerSalesProducts"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:clipToPadding="false"
-        android:paddingTop="4dp"
+        android:overScrollMode="never"
+        android:paddingTop="2dp"
         android:paddingBottom="8dp"
+        android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@id/cardSaleSummary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -81,9 +86,10 @@
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressProducts"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:visibility="gone"
+        app:indicatorColor="@color/brand_primary"
         app:layout_constraintBottom_toBottomOf="@id/recyclerSalesProducts"
         app:layout_constraintEnd_toEndOf="@id/recyclerSalesProducts"
         app:layout_constraintStart_toStartOf="@id/recyclerSalesProducts"
@@ -91,26 +97,33 @@
 
     <TextView
         android:id="@+id/textEmptyProducts"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
         android:padding="24dp"
         android:text="@string/no_products_available"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="@color/text_secondary"
+        android:textSize="15sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/recyclerSalesProducts"
         app:layout_constraintEnd_toEndOf="@id/recyclerSalesProducts"
         app:layout_constraintStart_toStartOf="@id/recyclerSalesProducts"
-        app:layout_constraintTop_toTopOf="@id/recyclerSalesProducts" />
+        app:layout_constraintTop_toTopOf="@id/recyclerSalesProducts"
+        tools:visibility="visible" />
+
+    <!-- Current-sale summary -->
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardSaleSummary"
+        style="@style/Widget.QuickStock.Card"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="12dp"
         app:cardCornerRadius="18dp"
-        app:cardElevation="4dp"
+        app:cardElevation="3dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -125,87 +138,96 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/selected_items"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                app:layout_constraintBaseline_toBaselineOf="@id/textSelectedItems"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <TextView
                 android:id="@+id/textSelectedItems"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/brand_primary"
+                android:textSize="17sp"
                 android:textStyle="bold"
-                app:layout_constraintBaseline_toBaselineOf="@id/textSelectedItemsLabel"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="4" />
 
             <View
                 android:id="@+id/dividerSalesSummary"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
-                android:layout_marginTop="10dp"
-                android:background="?attr/colorOutlineVariant"
+                android:layout_marginTop="12dp"
+                android:background="@color/outline_variant"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textSelectedItemsLabel" />
+                app:layout_constraintTop_toBottomOf="@id/textSelectedItems" />
 
             <TextView
                 android:id="@+id/textTotalLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="14dp"
                 android:text="@string/sale_total"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/dividerSalesSummary" />
+                app:layout_constraintBaseline_toBaselineOf="@id/textSaleTotal"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <TextView
                 android:id="@+id/textSaleTotal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
                 android:text="KSh 0.00"
-                android:textColor="@color/primaryGreen"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="@color/sale_total"
+                android:textSize="22sp"
                 android:textStyle="bold"
-                app:layout_constraintBaseline_toBaselineOf="@id/textTotalLabel"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/dividerSalesSummary"
+                tools:text="KSh 1,250.00" />
 
             <TextView
                 android:id="@+id/textCustomerSaving"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
+                android:gravity="end"
                 android:text="Customer saves KSh 0.00"
-                android:textColor="#8D6E00"
-                android:textSize="14sp"
+                android:textColor="@color/customer_saving"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textTotalLabel" />
+                app:layout_constraintTop_toBottomOf="@id/textSaleTotal"
+                tools:text="Customer saves KSh 150.00"
+                tools:visibility="visible" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonClearSale"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.QuickStock.Button.Text"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_marginTop="14dp"
                 android:text="@string/clear"
-                android:textAllCaps="false"
-                app:layout_constraintBottom_toBottomOf="@id/buttonCompleteSale"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/buttonCompleteSale" />
+                app:layout_constraintTop_toBottomOf="@id/textCustomerSaving" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonCompleteSale"
+                style="@style/Widget.QuickStock.Button.Primary"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_height="48dp"
+                android:minWidth="150dp"
                 android:text="@string/complete_sale"
-                android:textAllCaps="false"
+                app:layout_constraintBottom_toBottomOf="@id/buttonClearSale"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textCustomerSaving" />
+                app:layout_constraintTop_toTopOf="@id/buttonClearSale" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -1,36 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <resources>
 
-    <!-- Brand Colors -->
-    <color name="primaryGreen">#2E7D32</color>
-    <color name="primaryGreenDark">#1B5E20</color>
-    <color name="primaryGreenLight">#81C784</color>
+    <!-- =================================================
+         QUICKSTOCK BRAND
+         ================================================= -->
 
-    <!-- Accent -->
-    <color name="accentOrange">#FF9800</color>
+    <color name="brand_primary">#6750A4</color>
+    <color name="brand_primary_dark">#4F378B</color>
+    <color name="on_primary">#FFFFFF</color>
 
-    <color name="quickStockText">#20282C</color>
+    <color name="brand_primary_container">#EADDFF</color>
+    <color name="on_primary_container">#21005D</color>
 
-    <color name="splashTagline">#526168</color>
+    <color name="brand_secondary">#625B71</color>
+    <color name="on_secondary">#FFFFFF</color>
+
+    <color name="brand_secondary_container">#E8DEF8</color>
+    <color name="on_secondary_container">#1D192B</color>
+
+
+    <!-- =================================================
+         BACKGROUNDS AND SURFACES
+         ================================================= -->
+
+    <color name="app_background">#F8F7FC</color>
+    <color name="app_surface">#FFFFFF</color>
+    <color name="surface_variant">#F3EDF7</color>
+    <color name="surface_container">#F1ECF4</color>
+
+
+    <!-- =================================================
+         TEXT AND OUTLINES
+         ================================================= -->
+
+    <color name="text_primary">#1D1B20</color>
+    <color name="text_secondary">#625B71</color>
+    <color name="text_disabled">#9E9AA3</color>
+
+    <color name="outline">#79747E</color>
+    <color name="outline_variant">#CAC4D0</color>
+
+
+    <!-- =================================================
+         SEMANTIC STATUS COLOURS
+         ================================================= -->
+
+    <color name="success">#2E7D32</color>
+    <color name="on_success">#FFFFFF</color>
+    <color name="success_container">#E8F5E9</color>
+    <color name="on_success_container">#123A19</color>
+
+    <color name="warning">#8D6E00</color>
+    <color name="on_warning">#FFFFFF</color>
+    <color name="warning_container">#FFF4D6</color>
+    <color name="on_warning_container">#3D2C00</color>
+
+    <color name="error">#B3261E</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="error_container">#F9DEDC</color>
+    <color name="on_error_container">#410E0B</color>
+
+
+    <!-- =================================================
+         QUICKSTOCK BUSINESS MEANINGS
+         ================================================= -->
+
+    <color name="profit_positive">@color/success</color>
+    <color name="stock_healthy">@color/success</color>
+    <color name="stock_low">@color/error</color>
+    <color name="customer_saving">@color/warning</color>
+    <color name="sale_total">@color/brand_primary</color>
+
+    <color name="offline_banner_background">@color/warning_container</color>
+    <color name="offline_banner_text">@color/on_warning_container</color>
+
+
+    <!-- =================================================
+         BASIC COLOURS
+         ================================================= -->
 
     <color name="white">#FFFFFF</color>
-
-    <color name="quickStockPurple">#6750A4</color>
-
     <color name="black">#000000</color>
 
-    <!-- Background -->
-    <color name="background">#FAFAFA</color>
-    <color name="surface">#FFFFFF</color>
+    <color name="splashBackground">@color/app_surface</color>
+    <color name="splashTagline">@color/text_secondary</color>
+    <color name="quickStockText">@color/text_primary</color>
 
-    <color name="splashBackground">#FFFFFF</color>
 
-    <!-- Text -->
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#757575</color>
+    <!-- =================================================
+         TEMPORARY COMPATIBILITY NAMES
 
-    <!-- Status -->
-    <color name="error">#D32F2F</color>
-    <color name="success">#43A047</color>
+         Existing screens still refer to these names.
+         They now point to the new purple design system.
+         We will replace them screen by screen later.
+         ================================================= -->
+
+    <color name="primaryGreen">@color/brand_primary</color>
+    <color name="primaryGreenDark">@color/brand_primary_dark</color>
+    <color name="primaryGreenLight">@color/brand_primary_container</color>
+
+    <color name="quickStockPurple">@color/brand_primary</color>
+    <color name="accentOrange">@color/warning</color>
+
+    <color name="background">@color/app_background</color>
+    <color name="surface">@color/app_surface</color>
+
+    <color name="textPrimary">@color/text_primary</color>
+    <color name="textSecondary">@color/text_secondary</color>
 
 </resources>

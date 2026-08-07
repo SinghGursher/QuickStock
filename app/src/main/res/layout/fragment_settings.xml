@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:text="Profile &amp; Settings"
                 android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="@color/brand_primary"
                 android:textStyle="bold" />
 
             <TextView

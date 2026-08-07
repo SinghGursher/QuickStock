@@ -5,63 +5,91 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="@color/app_background">
+
+    <!-- Page heading -->
 
     <TextView
         android:id="@+id/txtTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:text="Inventory"
-        android:textSize="28sp"
-        android:textStyle="bold"
+        android:textAppearance="@style/TextAppearance.QuickStock.ScreenTitle"
+        android:textColor="@color/brand_primary"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/textInventorySubtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="20dp"
+        android:text="Manage your products and stock levels"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtTitle" />
+
+
+    <!-- Product search -->
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/searchLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget.QuickStock.TextInputLayout.Outlined"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
-        app:boxCornerRadiusBottomEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusTopStart="12dp"
         app:endIconMode="clear_text"
         app:hintEnabled="false"
-        app:startIconDrawable="@android:drawable/ic_menu_search"
+        app:startIconContentDescription="Search products"
+        app:startIconDrawable="@drawable/ic_search"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTitle">
+        app:layout_constraintTop_toBottomOf="@id/textInventorySubtitle">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etSearch"
+            style="@style/Widget.QuickStock.TextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Search products"
             android:imeOptions="actionSearch"
             android:inputType="text"
-            android:maxLines="1"
             android:paddingTop="14dp"
-            android:paddingBottom="14dp" />
+            android:paddingBottom="14dp"
+            android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- Product list -->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerProducts"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingTop="2dp"
         android:paddingBottom="96dp"
+        android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchLayout" />
+
+
+    <!-- Add product -->
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddProduct"
@@ -69,8 +97,11 @@
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:contentDescription="Add product"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/primaryGreen"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/brand_primary"
+        app:elevation="6dp"
+        app:rippleColor="@color/brand_primary_container"
+        app:tint="@color/on_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

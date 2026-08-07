@@ -13,6 +13,8 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.quickstock.R;
 import com.google.android.material.button.MaterialButton;
@@ -43,11 +45,30 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
+        configureSystemBars();
+
         firebaseAuth = FirebaseAuth.getInstance();
 
         initialiseViews();
         startAnimations();
         setupClickListeners();
+    }
+
+    private void configureSystemBars() {
+        /*
+         * QuickStock currently uses a controlled light theme.
+         * Explicitly request dark system-bar icons so Samsung
+         * dark mode does not place white icons on the light
+         * Login background.
+         */
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(
+                        getWindow(),
+                        getWindow().getDecorView()
+                );
+
+        controller.setAppearanceLightStatusBars(true);
+        controller.setAppearanceLightNavigationBars(true);
     }
 
     private void initialiseViews() {
@@ -112,7 +133,7 @@ public class LoginActivity extends AppCompatActivity {
         firebaseAuth
                 .signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    setLoadingState(false, "Login");
+                    setLoadingState(false, "Log in");
 
                     if (task.isSuccessful()) {
                         openMainActivity();
@@ -192,7 +213,7 @@ public class LoginActivity extends AppCompatActivity {
         firebaseAuth
                 .sendPasswordResetEmail(email)
                 .addOnCompleteListener(this, task -> {
-                    setLoadingState(false, "Login");
+                    setLoadingState(false, "Log in");
 
                     if (task.isSuccessful()) {
                         showMessage(

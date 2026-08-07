@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
@@ -113,6 +114,7 @@ public class AddProductActivity
         );
 
         initialiseViews();
+        initialiseBackNavigation();
 
         productRepository =
                 new ProductRepository();
@@ -624,7 +626,7 @@ public class AddProductActivity
 
         textOfferPreview.setText(
                 String.format(
-                        Locale.getDefault(),
+                        Locale.US,
                         "%d items for KSh %,.2f • Customer saves KSh %,.2f",
                         quantity,
                         offerPrice,
@@ -769,7 +771,7 @@ public class AddProductActivity
 
             etPrice.setError(
                     String.format(
-                            Locale.getDefault(),
+                            Locale.US,
                             "Selling price cannot be below the item cost of KSh %,.2f.",
                             costPrice
                     )
@@ -824,7 +826,7 @@ public class AddProductActivity
 
                 etOfferPrice.setError(
                         String.format(
-                                Locale.getDefault(),
+                                Locale.US,
                                 "Offer price must be below the normal total of KSh %,.2f.",
                                 normalTotal
                         )
@@ -844,7 +846,7 @@ public class AddProductActivity
 
                 etOfferPrice.setError(
                         String.format(
-                                Locale.getDefault(),
+                                Locale.US,
                                 "Offer price cannot be below the total cost of KSh %,.2f.",
                                 offerCost
                         )
@@ -1048,14 +1050,14 @@ public class AddProductActivity
         if (value == Math.floor(value)) {
 
             return String.format(
-                    Locale.getDefault(),
+                    Locale.US,
                     "%.0f",
                     value
             );
         }
 
         return String.format(
-                Locale.getDefault(),
+                Locale.US,
                 "%.2f",
                 value
         );
@@ -1066,7 +1068,7 @@ public class AddProductActivity
     ) {
 
         return String.format(
-                Locale.getDefault(),
+                Locale.US,
                 "%.2f",
                 value
         );
@@ -1116,5 +1118,18 @@ public class AddProductActivity
         }
 
         return error;
+    }
+
+    private void initialiseBackNavigation() {
+        MaterialToolbar toolbarAddProduct =
+                findViewById(
+                        R.id.toolbarAddProduct
+                );
+
+        toolbarAddProduct.setNavigationOnClickListener(
+                view ->
+                        getOnBackPressedDispatcher()
+                                .onBackPressed()
+        );
     }
 }

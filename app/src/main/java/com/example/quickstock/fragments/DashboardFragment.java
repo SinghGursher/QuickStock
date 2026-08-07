@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import android.util.Log;
+import com.example.quickstock.firebase.FirebaseClient;
 
 import com.example.quickstock.R;
 import com.example.quickstock.activities.AddProductActivity;
@@ -23,6 +25,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+
 import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -32,8 +39,11 @@ import java.util.Map;
 
 public class DashboardFragment extends Fragment {
 
+    private static final String TAG =
+            "DashboardFragment";
     private View dashboardRoot;
 
+    private TextView txtName;
     private TextView txtTopProduct;
     private TextView txtTopProductProfit;
     private TextView txtSales;
@@ -90,6 +100,9 @@ public class DashboardFragment extends Fragment {
     private void initialiseViews(View view) {
         dashboardRoot =
                 view.findViewById(R.id.dashboardRoot);
+
+        txtName =
+                view.findViewById(R.id.txtName);
 
         txtTopProduct =
                 view.findViewById(R.id.txtTopProduct);
@@ -148,6 +161,99 @@ public class DashboardFragment extends Fragment {
 
                     startActivity(intent);
                 }
+        );
+    }
+
+    private void loadBusinessName() {
+        DatabaseReference profileReference =
+                FirebaseClient.getCurrentUserReference();
+
+        if (profileReference == null) {
+            Log.w(
+                    TAG,
+                    "Business name unavailable because there is no signed-in user."
+            );
+
+            displayBusinessName(null);
+            return;
+        }
+
+        profileReference
+                .addListenerForSingleValueEvent(
+                        new ValueEventListener() {
+
+                            @Override
+                            public void onDataChange(
+                                    @NonNull DataSnapshot snapshot
+                            ) {
+                                if (!isAdded()
+                                        || getView() == null
+                                        || txtName == null) {
+                                    return;
+                                }
+
+                                String businessName =
+                                        snapshot
+                                                .child("businessName")
+                                                .getValue(
+                                                        String.class
+                                                );
+
+                                Log.d(
+                                        TAG,
+                                        "Business name loaded: "
+                                                + businessName
+                                );
+
+                                displayBusinessName(
+                                        businessName
+                                );
+                            }
+
+                            @Override
+                            public void onCancelled(
+                                    @NonNull DatabaseError error
+                            ) {
+                                Log.w(
+                                        TAG,
+                                        "Business name could not be loaded.",
+                                        error.toException()
+                                );
+
+                                if (!isAdded()
+                                        || getView() == null
+                                        || txtName == null) {
+                                    return;
+                                }
+
+                                displayBusinessName(null);
+                            }
+                        }
+                );
+    }
+
+    private void displayBusinessName(
+            @Nullable String businessName
+    ) {
+        if (txtName == null) {
+            return;
+        }
+
+        String safeBusinessName =
+                businessName == null
+                        ? ""
+                        : businessName.trim();
+
+        if (safeBusinessName.isEmpty()) {
+            txtName.setText(
+                    "QuickStock dashboard"
+            );
+
+            return;
+        }
+
+        txtName.setText(
+                safeBusinessName
         );
     }
 
@@ -498,6 +604,7 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        loadBusinessName();
         loadDashboard();
     }
 
@@ -506,6 +613,7 @@ public class DashboardFragment extends Fragment {
         dashboardLoading = false;
 
         dashboardRoot = null;
+        txtName = null;
 
         txtTopProduct = null;
         txtTopProductProfit = null;

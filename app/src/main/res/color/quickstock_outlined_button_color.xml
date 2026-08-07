@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Disabled -->
+    <item
+        android:color="@color/outline_variant"
+        android:state_enabled="false" />
+
+    <!-- Pressed -->
+    <item
+        android:color="@color/brand_primary_dark"
+        android:state_pressed="true" />
+
+    <!-- Normal -->
+    <item android:color="@color/brand_primary" />
+
+</selector>

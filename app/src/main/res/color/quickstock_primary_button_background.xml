@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Disabled -->
+    <item
+        android:color="@color/surface_variant"
+        android:state_enabled="false" />
+
+    <!-- Enabled -->
+    <item android:color="@color/brand_primary" />
+
+</selector>
